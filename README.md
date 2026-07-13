@@ -88,8 +88,9 @@ MaternaCare-ES/
 │   ├── inference_base.py              # Inferencia con modelo base (baseline)
 │   ├── evaluate_model_predictions.py  # Evaluación de predicciones
 │   ├── evaluate_qa_with_ragas.py      # Evaluación con RAGAS
-│   ├── convert_eval_to_csv.py         # Conversión de evaluaciones a CSV
-│   └── backfill_prediction_metadata.py
+│   ├── backfill_prediction_metadata.py
+│   ├── vram_smoke_test.py             # Smoke test directo en GPU
+│   └── vram_smoke_test_offload.py     # Smoke test con CPU offloading
 ├── outputs/                           # Pesos, checkpoints y evaluaciones
 │   ├── gemma4-grounded/               # Adapter Gemma 4 grounded
 │   ├── medgemma-grounded/             # Adapter MedGemma grounded
@@ -312,7 +313,7 @@ dataset = load_dataset("iue-edu/MaternaQA-es")
 
 - Los modelos entrenados son recursos de investigación; **no reemplazan criterio clínico** ni guías médicas oficiales.
 - Las predicciones generadas deben interpretarse como asistencia para investigación, no como recomendaciones médicas.
-- El dataset y los modelos se publican bajo licencia MIT. Antes de usar en sistemas reales, se requiere validación clínica independiente.
+- Este repositorio se publica bajo licencia MIT. Para el dataset y los modelos/adapters, revisa la licencia declarada en cada repositorio de Hugging Face.
 
 ## Licencia
 

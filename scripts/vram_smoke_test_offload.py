@@ -19,6 +19,8 @@ bnb_config = BitsAndBytesConfig(
 
 print("Cargando tokenizer...")
 tokenizer = AutoTokenizer.from_pretrained(base_model, trust_remote_code=True)
+if tokenizer.pad_token is None and tokenizer.eos_token is not None:
+    tokenizer.pad_token = tokenizer.eos_token
 
 print("Cargando modelo con device_map='auto' (permite CPU offloading)...")
 model = AutoModelForImageTextToText.from_pretrained(

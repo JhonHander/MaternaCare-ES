@@ -11,9 +11,7 @@ What it uploads:
 2. Gemma4 QLoRA adapter -> iue-edu/MaternaCare-ES-gemma4-qlora
 3. MedGemma QLoRA adapter -> iue-edu/MaternaCare-ES-medgemma-qlora
 """
-import json
 import os
-import subprocess
 from pathlib import Path
 from huggingface_hub import HfApi, upload_folder
 
