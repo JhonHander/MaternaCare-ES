@@ -92,6 +92,7 @@ MaternaCare-ES/
 │   ├── backfill_prediction_metadata.py
 │   ├── vram_smoke_test.py             # Smoke test directo en GPU
 │   └── vram_smoke_test_offload.py     # Smoke test con CPU offloading
+│   └── backfill_prediction_metadata.py
 ├── outputs/                           # Pesos, checkpoints y evaluaciones
 │   ├── gemma4-grounded/               # Adapter Gemma 4 grounded
 │   ├── medgemma-grounded/             # Adapter MedGemma grounded
