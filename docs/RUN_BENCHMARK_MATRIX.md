@@ -74,6 +74,29 @@ Cada modelo ejecuta las tres estrategias sobre las 328 preguntas:
 - `hybrid`: recuperación BM25 + búsqueda semántica.
 - `hyde`: genera un documento hipotético y recupera evidencia real mediante búsqueda semántica.
 
+## Ejecución rápida: 10 + 10 preguntas
+
+Si no hay tiempo para las 328 preguntas, cada compañero puede ejecutar **dos comandos para su modelo**: uno con las 10 preguntas de `sample10` y otro con las primeras 10 preguntas de `maternaqa_test`. Cada comando ejecuta las tres estrategias.
+
+Por ejemplo, para `gemma4_base`:
+
+```bash
+python scripts/run_experiment_matrix.py \
+  --mode sample10 \
+  --model gemma4_base \
+  --retrieval-device cuda \
+  2>&1 | tee logs/gemma4_base__sample10.log
+
+python scripts/run_experiment_matrix.py \
+  --mode full \
+  --model gemma4_base \
+  --limit 10 \
+  --retrieval-device cuda \
+  2>&1 | tee logs/gemma4_base__maternaqa10.log
+```
+
+Cambie `gemma4_base` por el modelo asignado. El parámetro `--limit 10` solo limita la ejecución de `maternaqa_test`; `sample10` ya contiene exactamente 10 preguntas. Los resultados quedan separados por dataset y fingerprint.
+
 ## Monitorear la ejecución
 
 Los comandos anteriores guardan toda la salida en `logs/<modelo>.log` y también la muestran en pantalla. Para observar el progreso desde otra terminal, ejecute:

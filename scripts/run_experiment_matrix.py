@@ -224,6 +224,12 @@ def build_matrix_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Only validate datasets and exit.",
     )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Limit the number of questions for the selected dataset.",
+    )
 
     return parser
 
@@ -252,16 +258,18 @@ def main() -> None:
         specific_strategy = matrix_args.strategy or "no_rag"
     elif mode == "sample10":
         dataset_mode = "sample10"
-        limit = None
+        limit = matrix_args.limit
         specific_model = matrix_args.model
         specific_strategy = matrix_args.strategy
     else:  # full
         dataset_mode = "maternaqa_test"
-        limit = None
+        limit = matrix_args.limit
         specific_model = matrix_args.model
         specific_strategy = matrix_args.strategy
 
     base_args = ["--dataset-mode", dataset_mode, "--strategy", "no_rag", *passthrough]
+    if limit is not None:
+        base_args.extend(["--limit", str(limit)])
 
     combos = 1
     if not specific_model:

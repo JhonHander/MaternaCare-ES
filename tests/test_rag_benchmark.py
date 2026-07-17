@@ -688,6 +688,16 @@ class MatrixCliTests(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertIn('"matrix_size": 1', result.stdout)
 
+    def test_full_mode_limit_selects_maternaqa_subset(self) -> None:
+        result = self.run_matrix_cli(
+            "--mode", "full", "--model", "gemma4_base", "--limit", "10", "--validate-data-only",
+        )
+
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn('"dataset_mode": "maternaqa_test"', result.stdout)
+        self.assertIn('"samples": 10', result.stdout)
+        self.assertIn('"limit": 10', result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
