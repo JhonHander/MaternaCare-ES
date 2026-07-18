@@ -26,6 +26,22 @@ from utils import (
 )
 
 
+DEFAULT_MODEL_NAME = "google/gemma-4-E2B-it"
+MODEL_TOKENIZERS = {
+    "google/gemma-4-E2B-it": "google/gemma-4-E2B-it",
+    "google/medgemma-1.5-4b-it": "google/medgemma-1.5-4b-it",
+}
+
+
+def resolve_tokenizer_name(model_name: str, tokenizer_name: str | None) -> str:
+    if tokenizer_name:
+        return tokenizer_name
+    normalized = model_name.lower()
+    if "medgemma" in normalized:
+        return MODEL_TOKENIZERS["google/medgemma-1.5-4b-it"]
+    return MODEL_TOKENIZERS[DEFAULT_MODEL_NAME]
+
+
 def parse_args() -> argparse.Namespace:
     corpus_dir = default_corpus_dir()
     datasets_dir = default_datasets_dir()
@@ -42,6 +58,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-tokens", type=int, default=500)
     parser.add_argument("--max-tokens", type=int, default=1200)
     parser.add_argument(
+        "--model-name",
+        type=str,
+        default=DEFAULT_MODEL_NAME,
+        help="Base model name; used to select the matching tokenizer automatically.",
+    )
+    parser.add_argument(
         "--overlap-tokens",
         type=int,
         default=100,
@@ -50,8 +72,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--tokenizer-name",
         type=str,
-        default="google/gemma-4-E2B-it",
-        help="Hugging Face tokenizer name or path to use for overlap computation.",
+        default=None,
+        help="Optional tokenizer override for overlap computation.",
     )
     parser.add_argument("--min-accepted-tokens", type=int, default=180)
     parser.add_argument("--min-clinical-score", type=int, default=5)
@@ -131,7 +153,8 @@ def _dedupe_audit(rows: Iterable[Dict[str, Any]]) -> Dict[str, Any]:
 
 def main() -> None:
     args = parse_args()
-    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name)
+    tokenizer_name = resolve_tokenizer_name(args.model_name, args.tokenizer_name)
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
     clean_rows = read_jsonl(args.input)
     kept_rows = [row for row in clean_rows if row.get("is_kept") is True]
     candidate_chunks = chunk_records(
