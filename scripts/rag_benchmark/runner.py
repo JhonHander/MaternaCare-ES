@@ -54,6 +54,7 @@ class BenchmarkConfig:
     embedding_model: str
     evaluator_max_completion_tokens: int
     evaluator_timeout_seconds: int
+    evaluator_concurrency: int
     generation_settings: GenerationSettings
     hyde_generation_settings: GenerationSettings
     adapter_path: Path | None = None
@@ -136,7 +137,7 @@ def _experiment_configuration(config: BenchmarkConfig) -> dict[str, Any]:
         "retrieval": {"backend": "lancedb_exact", "k": config.retrieval_k, "model": config.retrieval_embedding_model, "revision": config.retrieval_embedding_revision, "device": config.retrieval_device, "batch_size": config.retrieval_batch_size},
         "hyde": _hyde_identity(config) if config.strategy == "hyde" else None,
         "answer": {"key": config.model_key, "model_id": spec.model_id, "base_model_id": spec.base_model_id, "adapter_source": adapter_source, "adapter_provenance": provenance, "prompt": ANSWER_WITHOUT_CONTEXT_INSTRUCTION if config.strategy == "no_rag" else ANSWER_WITH_CONTEXT_INSTRUCTION, "generation": asdict(config.generation_settings), "load_in_4bit": config.load_in_4bit, "trust_remote_code": config.trust_remote_code, "attn_implementation": config.attn_implementation},
-        "evaluator": {"model": config.evaluator_model, "embedding_model": config.embedding_model, "max_completion_tokens": config.evaluator_max_completion_tokens, "timeout_seconds": config.evaluator_timeout_seconds},
+        "evaluator": {"model": config.evaluator_model, "embedding_model": config.embedding_model, "max_completion_tokens": config.evaluator_max_completion_tokens, "timeout_seconds": config.evaluator_timeout_seconds, "concurrency": config.evaluator_concurrency},
     }
 
 
@@ -331,6 +332,7 @@ async def run_benchmark(
             embedding_model=config.embedding_model,
             max_completion_tokens=config.evaluator_max_completion_tokens,
             timeout_seconds=config.evaluator_timeout_seconds,
+            concurrency=config.evaluator_concurrency,
         )
     )
     _log(f"answer model loading model={spec.model_id}")

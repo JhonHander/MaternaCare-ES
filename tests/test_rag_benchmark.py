@@ -351,7 +351,7 @@ class TelemetryTests(unittest.TestCase):
 
 
 class RagasTests(unittest.TestCase):
-    def test_ragas_receives_single_turn_fields_and_exactly_six_metrics(self) -> None:
+    def test_ragas_receives_single_turn_fields_and_exactly_seven_metrics(self) -> None:
         calls: dict[str, dict[str, Any]] = {}
         construction: dict[str, Any] = {}
 
@@ -395,6 +395,7 @@ class RagasTests(unittest.TestCase):
             ("ContextPrecision", "context_precision"),
             ("ContextRecall", "context_recall"),
             ("Faithfulness", "faithfulness"),
+            ("NoiseSensitivity", "noise_sensitivity"),
             ("AnswerRelevancy", "answer_relevancy"),
             ("AnswerCorrectness", "answer_correctness"),
             ("SemanticSimilarity", "semantic_similarity"),
@@ -443,8 +444,36 @@ class RagasTests(unittest.TestCase):
                 return self.value
         metrics = {name: Metric(float("nan") if name == "answer_relevancy" else 0.5) for name in METRIC_NAMES}
         result = asyncio.run(RagasEvaluator(metrics, Sample).score("q", "a", [], "r", include_context_metrics=False))
-        self.assertEqual(([None] * 3, None, 1), ([result[name] for name in METRIC_NAMES[:3]], result["answer_relevancy"], len(result["metric_errors"])))
+        self.assertEqual(([None] * 4, None, 1), ([result[name] for name in METRIC_NAMES[:4]], result["answer_relevancy"], len(result["metric_errors"])))
         self.assertIn("non-finite", result["metric_errors"][0])
+
+    def test_ragas_limits_metric_concurrency(self) -> None:
+        active = 0
+        peak = 0
+
+        class Sample:
+            def __init__(self, **fields: Any) -> None:
+                self.__dict__.update(fields)
+
+            def model_dump(self, exclude_none: bool = True) -> dict[str, Any]:
+                return self.__dict__
+
+        class Metric:
+            async def ascore(self, **kwargs: Any) -> float:
+                nonlocal active, peak
+                active += 1
+                peak = max(peak, active)
+                await asyncio.sleep(0.01)
+                active -= 1
+                return 0.5
+
+        metrics = {name: Metric() for name in METRIC_NAMES}
+        result = asyncio.run(
+            RagasEvaluator(metrics, Sample, concurrency=2).score("q", "a", ["c"], "r")
+        )
+
+        self.assertEqual(set(METRIC_NAMES), set(result))
+        self.assertEqual(2, peak)
 
 
 class CorrectionTests(unittest.TestCase):

@@ -22,7 +22,8 @@ from typing import Any
 
 from rag_benchmark.cli import build_parser, config_from_args
 from rag_benchmark.model_registry import MODEL_REGISTRY
-from rag_benchmark.runner import BenchmarkConfig, run_benchmark
+from rag_benchmark.retrieval import DenseRetriever
+from rag_benchmark.runner import BenchmarkConfig, load_and_validate_data, run_benchmark
 
 
 MODELS = tuple(MODEL_REGISTRY)
@@ -66,6 +67,7 @@ def _build_matrix_configs(base_config: BenchmarkConfig, limit: int | None) -> li
                 embedding_model=base_config.embedding_model,
                 evaluator_max_completion_tokens=base_config.evaluator_max_completion_tokens,
                 evaluator_timeout_seconds=base_config.evaluator_timeout_seconds,
+                evaluator_concurrency=base_config.evaluator_concurrency,
                 generation_settings=base_config.generation_settings,
                 hyde_generation_settings=base_config.hyde_generation_settings,
                 adapter_path=base_config.adapter_path,
@@ -84,6 +86,40 @@ def _read_summary(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _preflight_retrieval(cfgs: list[tuple[str, str, BenchmarkConfig]]) -> None:
+    """Validate shared dense retrieval before any expensive experiment starts."""
+    retrieval_cfg = next(
+        (item for item in cfgs if item[1] in {"hybrid", "hyde"}),
+        None,
+    )
+    if retrieval_cfg is None:
+        return
+
+    _, strategy, config = retrieval_cfg
+    print(
+        "Preflight: loading retrieval index "
+        f"model={config.retrieval_embedding_model} device={config.retrieval_device}",
+        flush=True,
+    )
+    try:
+        _, corpus = load_and_validate_data(config)
+        DenseRetriever.load_or_build(
+            chunks=corpus,
+            index_dir=config.index_dir,
+            model_name=config.retrieval_embedding_model,
+            revision=config.retrieval_embedding_revision,
+            device=config.retrieval_device,
+            batch_size=config.retrieval_batch_size,
+        )
+    except Exception as exc:
+        raise RuntimeError(
+            "Retrieval preflight failed before any sample was processed "
+            f"for strategy {strategy}: {type(exc).__name__}: {exc}. "
+            "Repair the retrieval model cache or configuration and retry."
+        ) from exc
+    print("Preflight: retrieval index ready", flush=True)
+
+
 async def run_matrix(
     mode: str,
     base_args: list[str],
@@ -100,6 +136,8 @@ async def run_matrix(
         cfgs = [item for item in cfgs if item[0] == specific_model]
     if specific_strategy:
         cfgs = [item for item in cfgs if item[1] == specific_strategy]
+
+    _preflight_retrieval(cfgs)
 
     results: list[ExperimentResult] = []
     total = len(cfgs)
