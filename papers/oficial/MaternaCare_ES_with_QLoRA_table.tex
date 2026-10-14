@@ -123,21 +123,23 @@ pretrained MedGemma~1.5 before and after grounded QLoRA adaptation using
 MaternaQA-es, while examining No RAG, Hybrid retrieval, and
 independent HyDE as experimental factors. All 24 scenario-condition runs
 were evaluated across two 10-question scenarios, yielding 240 final
-condition-item outputs. Within this exploratory evaluation, Gemma~4 Base
-with Hybrid retrieval achieved the highest observed Answer Correctness and
-Semantic Similarity in both scenarios, whereas MedGemma~1.5 QLoRA with
-No RAG achieved the highest observed mean Answer Relevancy. HyDE
-generally improved retrieval precision relative to Hybrid, especially in
-the obstetric challenge scenario, but its effects on answer quality were
-heterogeneous and model-dependent. Under No RAG, QLoRA improved all three
-response metrics for Gemma~4 in both scenarios and for MedGemma~1.5 in the
-obstetric challenge set, while the MaternaQA-es subset showed a
-correctness-relevance trade-off for MedGemma~1.5. Given the limited
+condition-item outputs. Within this exploratory evaluation, on MaternaQA-es,
+Gemma~4 Base with Hybrid retrieval achieved the highest observed Answer Correctness (0.649),
+while Gemma~4 QLoRA with No RAG and Hybrid retrieval achieved the highest
+Answer Relevancy (0.776) and Semantic Similarity (0.838), respectively.
+On the obstetric challenge set, Gemma~4 Base with Hybrid retrieval achieved
+the highest Answer Correctness (0.457), MedGemma~1.5 QLoRA with No RAG the
+highest Answer Relevancy (0.913), and Gemma~4 Base and Gemma~4 QLoRA with HyDE tied
+in Semantic Similarity (0.707). HyDE achieved higher RAGAS Context Precision
+than Hybrid in seven of eight model-scenario comparisons; effects on answer
+quality were heterogeneous and model-dependent. Under No RAG, QLoRA increased
+Answer Relevancy in all four model-scenario comparisons, while changes in
+Answer Correctness and Semantic Similarity were mixed. Given the limited
 evaluation of 10 questions per scenario, these findings should be
 interpreted as preliminary descriptive patterns rather than definitive
 evidence of model or retrieval-strategy superiority. Broader evaluation and
 clinician review are needed.
-\end{abstract}
+\end{abstract}\end{abstract}
 
 \begin{IEEEkeywords}
 Small language models, QLoRA, retrieval-augmented generation, HyDE,
@@ -226,9 +228,11 @@ are defined for HyDE and for the two model families.
 MaternaQA-es contains 5,727 Spanish obstetric question-answer pairs derived
 from 63 clinical documents. Its document-level partitions contain 52
 training PDFs (5,093 items), 2 validation PDFs (306 items), and 3 held-out
-test PDFs. This study processed 10 test questions; test
-sources do not overlap training or validation sources, and \code{qa_id} is
-retained as the pairing key~\cite{maternaqa2026}.
+test PDFs (328 items). The exploratory evaluation subset comprised the
+first 10 records of the held-out test file used in the experiment, rather
+than the complete test partition. Test sources do not overlap training or
+validation sources, and \code{qa_id} is retained as the pairing
+key~\cite{maternaqa2026}.
 
 The primary grounded adaptation uses the \code{sft_grounded}
 representation, in which the source context associated with an item is
@@ -255,11 +259,12 @@ MaternaQA-es is publicly available on Hugging Face~\cite{maternaqa2026}.
 
 The challenge set supports answer-quality evaluation but not gold
 document-level retrieval recall. The processed MaternaQA-es subset supports
-both response metrics and reference-chunk checks. Each scenario used 10
-questions across all 12 conditions. MaternaQA-es preserves grounded source
-context with the question, whereas \code{sample10} contains only the
-question before retrieval-stage context is added. This input difference may
-affect the results.
+both response metrics and reference-chunk checks. Each scenario used 10 questions across all 12 conditions. MaternaQA-es
+records retain source-reference metadata, but the test prompt contains only
+the question before retrieval. The \code{sample10} records likewise contain
+the question but do not provide gold reference-chunk identifiers. Hybrid and
+HyDE add retrieved corpus contexts, whereas No RAG receives none. These
+differences affect which retrieval checks are available for each scenario.
 
 Therefore, the two scenarios are treated as complementary evaluation
 settings rather than directly comparable samples from the same input
@@ -275,9 +280,9 @@ MedGemma~1.5 4B instruction-tuned. Base conditions load the published
 model without an adapter. QLoRA conditions load
 \code{iue-edu/MaternaCare-ES-gemma4-qlora} or
 \code{iue-edu/MaternaCare-ES-medgemma-qlora} on the corresponding base
-model. The answer model, decoding settings, prompt structure, and test
-items are held fixed across retrieval strategies within a family and
-adaptation state.
+model. The answer model, adaptation state, and test items are held fixed across
+retrieval-strategy comparisons within each model family; the retrieval
+strategy determines whether retrieved evidence is supplied.
 
 Table~\ref{tab:factorial} lists the complete prespecified design. The final
 result artifacts covered No RAG, Hybrid, and HyDE for all four
@@ -479,10 +484,10 @@ All answer prompts are written in Spanish. RAG prompts contain a clearly
 delimited context block with positional labels and the question. Provenance
 is retained in benchmark records rather than asserted as content in the
 answer prompt. The No RAG condition receives the same question
-formatting and chat template but an empty context block.
+formatting and chat template but omits the context block.
 
 Inference uses the model's chat template and greedy decoding by default,
-with a maximum of 512 newly generated tokens. Sampling is disabled unless a
+with a maximum of 2,048 newly generated tokens. Sampling is disabled unless a
 run explicitly records a different configuration. QLoRA conditions load the
 declared adapter on the corresponding base model; base conditions do not.
 Retrieval generation and answer generation remain separate stages.
@@ -504,7 +509,7 @@ evidence to per-condition results.}
 
 \subsubsection{Retained Fine-Tuning-Output Evaluator}
 The retained evaluator uses RAGAS 0.4.3 with \code{gpt-5.4-mini} as
-evaluator, \code{text-embedding-3-small} for embedding-based evaluation,
+evaluator, \code{text-embedding-3-large} for embedding-based evaluation,
 and a maximum completion length of 2,048 tokens. The retained metrics are
 Faithfulness, Answer Relevancy, Answer Correctness, and Semantic Similarity.
 
@@ -525,17 +530,15 @@ hardware-independent throughput.
 
 \subsection{Analysis Plan}
 The primary analysis is descriptive and item-level. Means are computed from
-the valid automatic scores available within each balanced 10-question
-scenario. Given the limited
-number of evaluated questions per scenario, all comparisons are treated as
-exploratory rather than confirmatory. QLoRA is compared with
+the 10 question-level scores for each applicable metric within each balanced
+scenario; context-dependent metrics are not applicable to No RAG. Given the
+limited number of evaluated questions per scenario, all comparisons are
+treated as exploratory rather than confirmatory. QLoRA is compared with
 base within each retrieval strategy and family; retrieval strategies are
 contrasted within adaptation and family; and model families are compared
 under matched conditions.
 
-Duplicate or superseded records were resolved at \code{qa_id} level by
-preferring more complete rows, fewer metric errors, and then the latest row
-position. The summary used the same 10 \code{qa_id} values shared by all 12
+The summary used the same 10 \code{qa_id} values shared by all 12
 conditions in each scenario.
 
 \subsection{Reproducibility and Experimental Scope}
@@ -557,19 +560,11 @@ comparisons are made within each scenario.
 \section{Results}
 % =====================================================================
 \subsection{Available Runs and Analysis Set}
-The consolidated workbook contained 262 records, including duplicate,
-retried, or superseded rows, and represented two scenarios, four model
-conditions, and all three inference strategies. No RAG, Hybrid, and
-HyDE were available for every model/adaptation combination in both
-scenarios, completing the 12-condition matrix for each scenario.
-
-After resolving duplicate or superseded rows and restricting both scenarios
-to identifiers shared by all 12 conditions, the balanced analysis contained
-240 final condition-item outputs: 120 for the MaternaQA-es subset and 120
-for the obstetric challenge set. Every condition contributed responses for
-all 10 questions; however, 20 condition-item records contained at least one
-unavailable automatic metric, so means were calculated from valid scores
-without imputation.
+The final analysis comprised 240 condition-item outputs: 120 for the
+MaternaQA-es subset and 120 for the obstetric challenge set. Each scenario
+contained 10 questions evaluated across all 12 conditions, yielding 10 final
+responses per condition. All automatic metrics applicable to each condition
+were available; no scores were imputed.
 
 % --- Table III: full-width, caption above, no vertical rules ---------
 \begin{table*}[!t]
@@ -584,33 +579,33 @@ Model & State & Strategy & Correct. & Relev. & Sem. sim. & Faith. & C. prec. & C
 \midrule
 \multicolumn{9}{c}{\textit{Panel A. MaternaQA-es test subset}} \\
 \midrule
-Gemma 4 & Base & No RAG & 0.320 & 0.689 & 0.684 & \dash & \dash & \dash \\
-Gemma 4 & Base & Hybrid & \textbf{0.668} & 0.786 & \textbf{0.813} & 0.917 & 0.945 & \textbf{0.900} \\
-Gemma 4 & Base & HyDE & 0.656 & 0.710 & 0.802 & \textbf{1.000} & 0.964 & 0.850 \\
-Gemma 4 & QLoRA & No RAG & 0.449 & 0.736 & 0.737 & \dash & \dash & \dash \\
-Gemma 4 & QLoRA & Hybrid & 0.451 & 0.728 & 0.791 & 0.768 & \textbf{1.000} & \textbf{0.900} \\
-Gemma 4 & QLoRA & HyDE & 0.387 & 0.643 & 0.699 & 0.904 & 0.933 & 0.850 \\
-MedGemma 1.5 & Base & No RAG & 0.367 & 0.599 & 0.625 & \dash & \dash & \dash \\
-MedGemma 1.5 & Base & Hybrid & 0.499 & 0.562 & 0.607 & 0.790 & 0.945 & 0.850 \\
-MedGemma 1.5 & Base & HyDE & 0.474 & 0.697 & 0.631 & 0.869 & 0.958 & 0.850 \\
-MedGemma 1.5 & QLoRA & No RAG & 0.311 & \textbf{0.811} & 0.733 & \dash & \dash & \dash \\
-MedGemma 1.5 & QLoRA & Hybrid & 0.346 & 0.706 & 0.749 & 0.841 & 0.900 & 0.812 \\
-MedGemma 1.5 & QLoRA & HyDE & 0.388 & 0.649 & 0.754 & 0.761 & 0.958 & \textbf{0.900} \\
+Gemma 4 & Base & No RAG & 0.372 & 0.696 & 0.704 & \dash & \dash & \dash \\
+Gemma 4 & Base & Hybrid & \textbf{0.649} & 0.669 & 0.820 & \textbf{0.967} & 0.908 & 0.800 \\
+Gemma 4 & Base & HyDE & 0.560 & 0.685 & 0.796 & 0.954 & \textbf{0.950} & 0.850 \\
+Gemma 4 & QLoRA & No RAG & 0.384 & \textbf{0.776} & 0.726 & \dash & \dash & \dash \\
+Gemma 4 & QLoRA & Hybrid & 0.605 & 0.759 & \textbf{0.838} & 0.883 & 0.908 & 0.800 \\
+Gemma 4 & QLoRA & HyDE & 0.637 & 0.639 & 0.818 & 0.882 & \textbf{0.950} & 0.750 \\
+MedGemma 1.5 & Base & No RAG & 0.388 & 0.611 & 0.714 & \dash & \dash & \dash \\
+MedGemma 1.5 & Base & Hybrid & 0.599 & 0.648 & 0.794 & 0.897 & \textbf{0.950} & \textbf{0.900} \\
+MedGemma 1.5 & Base & HyDE & 0.595 & 0.737 & 0.807 & 0.842 & \textbf{0.950} & \textbf{0.900} \\
+MedGemma 1.5 & QLoRA & No RAG & 0.330 & 0.683 & 0.720 & \dash & \dash & \dash \\
+MedGemma 1.5 & QLoRA & Hybrid & 0.609 & 0.700 & 0.826 & 0.883 & 0.908 & 0.850 \\
+MedGemma 1.5 & QLoRA & HyDE & 0.574 & 0.674 & 0.828 & 0.859 & \textbf{0.950} & \textbf{0.900} \\
 \midrule
 \multicolumn{9}{c}{\textit{Panel B. Obstetric challenge set}} \\
 \midrule
-Gemma 4 & Base & No RAG & 0.206 & 0.708 & 0.620 & \dash & \dash & \dash \\
-Gemma 4 & Base & Hybrid & \textbf{0.481} & 0.692 & \textbf{0.736} & \textbf{0.986} & 0.760 & 0.550 \\
-Gemma 4 & Base & HyDE & 0.423 & 0.760 & 0.722 & 0.960 & 0.917 & \textbf{0.800} \\
-Gemma 4 & QLoRA & No RAG & 0.268 & 0.824 & 0.648 & \dash & \dash & \dash \\
-Gemma 4 & QLoRA & Hybrid & 0.370 & 0.647 & 0.672 & 0.898 & 0.796 & 0.500 \\
-Gemma 4 & QLoRA & HyDE & 0.368 & 0.676 & 0.695 & 0.894 & 0.898 & 0.600 \\
-MedGemma 1.5 & Base & No RAG & 0.216 & 0.833 & 0.620 & \dash & \dash & \dash \\
-MedGemma 1.5 & Base & Hybrid & 0.240 & 0.388 & 0.509 & 0.930 & 0.811 & 0.500 \\
-MedGemma 1.5 & Base & HyDE & 0.368 & 0.607 & 0.535 & 0.885 & 0.908 & 0.700 \\
-MedGemma 1.5 & QLoRA & No RAG & 0.274 & \textbf{0.881} & 0.652 & \dash & \dash & \dash \\
-MedGemma 1.5 & QLoRA & Hybrid & 0.373 & 0.741 & 0.685 & 0.590 & 0.841 & 0.714 \\
-MedGemma 1.5 & QLoRA & HyDE & 0.256 & 0.696 & 0.660 & 0.764 & \textbf{0.919} & 0.700 \\
+Gemma 4 & Base & No RAG & 0.359 & 0.716 & 0.651 & \dash & \dash & \dash \\
+Gemma 4 & Base & Hybrid & \textbf{0.457} & 0.554 & 0.689 & 0.966 & 0.800 & 0.400 \\
+Gemma 4 & Base & HyDE & 0.335 & 0.658 & \textbf{0.707} & 0.902 & 0.958 & 0.200 \\
+Gemma 4 & QLoRA & No RAG & 0.205 & 0.845 & 0.634 & \dash & \dash & \dash \\
+Gemma 4 & QLoRA & Hybrid & 0.349 & 0.736 & 0.693 & 0.838 & 0.775 & 0.400 \\
+Gemma 4 & QLoRA & HyDE & 0.399 & 0.672 & \textbf{0.707} & 0.919 & 0.933 & 0.200 \\
+MedGemma 1.5 & Base & No RAG & 0.287 & 0.832 & 0.631 & \dash & \dash & \dash \\
+MedGemma 1.5 & Base & Hybrid & 0.402 & 0.368 & 0.622 & 0.850 & 0.842 & \textbf{0.500} \\
+MedGemma 1.5 & Base & HyDE & 0.260 & 0.545 & 0.639 & 0.850 & \textbf{1.000} & 0.200 \\
+MedGemma 1.5 & QLoRA & No RAG & 0.234 & \textbf{0.913} & 0.649 & \dash & \dash & \dash \\
+MedGemma 1.5 & QLoRA & Hybrid & 0.455 & 0.787 & 0.678 & 0.732 & 0.842 & 0.400 \\
+MedGemma 1.5 & QLoRA & HyDE & 0.316 & 0.725 & 0.668 & 0.771 & \textbf{1.000} & 0.200 \\
 \bottomrule
 \end{tabular*}
 \begin{tablenotes}[flushleft]
@@ -618,138 +613,126 @@ MedGemma 1.5 & QLoRA & HyDE & 0.256 & 0.696 & 0.660 & 0.764 & \textbf{0.919} & 0
 relevancy; Sem. sim. = semantic similarity; Faith. = faithfulness;
 C. prec. = context precision; C. recall = context recall. Dashes mark
 non-applicability for No RAG. All conditions yielded 10 responses;
-valid $n$ was 5--10 for response metrics and 6--10 for retrieval metrics;
- bold values are panel maxima.
+$n=10$ for every applicable metric; context metrics are not applicable to
+No RAG. Bold values are panel maxima.
 \end{tablenotes}
 \end{threeparttable}
 \end{table*}
 
 \subsection{MaternaQA-es Subset}
 Gemma~4 Base with Hybrid retrieval achieved the highest observed mean Answer
-Correctness (0.668) and Semantic Similarity (0.813), while MedGemma~1.5
-QLoRA with No RAG obtained the highest observed mean Answer Relevancy
-(0.811). Under No RAG, QLoRA increased Gemma~4 Answer Correctness by
-0.129, Answer Relevancy by 0.047, and Semantic Similarity by 0.053. For
-MedGemma~1.5, QLoRA reduced Answer Correctness by 0.057 but increased
-Answer Relevancy by 0.212 and Semantic Similarity by 0.109.
+Correctness (0.649), whereas Gemma~4 QLoRA with No RAG achieved the highest
+Answer Relevancy (0.776), and Gemma~4 QLoRA with Hybrid retrieval achieved the
+highest Semantic Similarity (0.838). Under No RAG, QLoRA changed Gemma~4
+Answer Correctness, Answer Relevancy, and Semantic Similarity by +0.012,
++0.080, and +0.022, respectively. For MedGemma~1.5, the corresponding changes
+were $-$0.058, +0.072, and +0.006.
 
-Relative to No RAG, Hybrid and HyDE produced their largest
-response-quality gains for Gemma~4 Base: Answer Correctness increased by
-0.348 with Hybrid and 0.336 with HyDE. HyDE also increased Answer
-Correctness for MedGemma~1.5 Base (+0.107) and QLoRA (+0.077), but reduced
-it for Gemma~4 QLoRA ($-$0.062). Directly against Hybrid, HyDE improved
-Answer Correctness only for MedGemma~1.5 QLoRA (+0.042) and improved Answer
-Relevancy most clearly for MedGemma~1.5 Base (+0.135), illustrating
-heterogeneous retrieval effects.
+Relative to No RAG, Hybrid and HyDE increased Answer Correctness and Semantic
+Similarity in all four model-state combinations. Answer Relevancy increased
+in two of four combinations with Hybrid and one of four with HyDE. Compared
+directly with Hybrid, HyDE increased Answer Correctness in one of four
+combinations, Answer Relevancy in two, and Semantic Similarity in two,
+indicating heterogeneous effects across models and metrics.
 
 \subsection{Obstetric Challenge Set}
 Within the evaluated obstetric challenge subset, Gemma~4 Base with Hybrid
-retrieval achieved the highest observed mean Answer Correctness (0.481) and
-Semantic Similarity (0.736), whereas MedGemma~1.5 QLoRA with No RAG obtained
-the highest observed mean Answer Relevancy (0.881). Under No RAG, QLoRA
-improved all three response metrics for both model families.
+retrieval achieved the highest observed mean Answer Correctness (0.457), and
+MedGemma~1.5 QLoRA with No RAG achieved the highest Answer Relevancy (0.913).
+Gemma~4 Base and Gemma~4 QLoRA with HyDE tied for the highest Semantic
+Similarity (0.707). Under No RAG, QLoRA changed Answer Correctness, Answer
+Relevancy, and Semantic Similarity by $-$0.154, +0.129, and $-$0.017 for
+Gemma~4, and by $-$0.054, +0.081, and +0.017 for MedGemma~1.5.
 
-Relative to No RAG, Hybrid increased Answer Correctness for all
-four model conditions but reduced Answer Relevancy in every condition.
-Semantic Similarity increased for both Gemma~4 conditions and MedGemma~1.5
-QLoRA, but decreased for MedGemma~1.5 Base.
+Relative to No RAG, Hybrid increased Answer Correctness in all four model
+conditions but reduced Answer Relevancy in every condition. Semantic
+Similarity increased for both Gemma~4 conditions and MedGemma~1.5 QLoRA, but
+decreased for MedGemma~1.5 Base.
 
-Relative to No RAG, HyDE increased Answer Correctness for Gemma~4
-Base (+0.218), Gemma~4 QLoRA (+0.100), and MedGemma~1.5 Base (+0.152), but
-slightly reduced it for MedGemma~1.5 QLoRA ($-$0.018). Answer Relevancy
-increased only for Gemma~4 Base, while Semantic Similarity increased for
-both Gemma~4 conditions and MedGemma~1.5 QLoRA but decreased for
-MedGemma~1.5 Base.
+Relative to No RAG, HyDE increased Answer Correctness for Gemma~4 QLoRA
+(+0.194) and MedGemma~1.5 QLoRA (+0.082), but reduced it for Gemma~4 Base
+($-$0.024) and MedGemma~1.5 Base ($-$0.028). Answer Relevancy decreased in
+all four conditions, while Semantic Similarity increased in all four.
 
-Compared directly with Hybrid retrieval, HyDE improved Answer Relevancy for
-both Gemma~4 conditions and MedGemma~1.5 Base, and it improved Answer
-Correctness most clearly for MedGemma~1.5 Base (+0.127). It did not
-dominate Hybrid for the other model conditions, confirming that
-hypothetical-document expansion changed retrieval quality without
-guaranteeing better final answers.
+Compared directly with Hybrid retrieval, HyDE improved Answer Correctness
+for Gemma~4 QLoRA (+0.050) and Answer Relevancy for Gemma~4 Base (+0.104)
+and MedGemma~1.5 Base (+0.177). Semantic Similarity increased in three of
+four model conditions. These descriptive patterns show that higher retrieval
+scores did not guarantee uniformly better response metrics.
 
 \subsection{Retrieval-Grounding Metrics}
-In the MaternaQA-es subset, Hybrid Context Precision ranged from 0.900 to
-1.000, Context Recall from 0.813 to 0.900, and Faithfulness from 0.768 to
-0.917. HyDE Context Precision ranged from 0.933 to 0.964, Context Recall
-from 0.850 to 0.900, and Faithfulness from 0.761 to 1.000. HyDE exceeded
-the corresponding Hybrid Context Precision in three of four model states,
-but improved Context Recall in only one state.
+In the MaternaQA-es subset, Hybrid Context Precision ranged from 0.908 to
+0.950, Context Recall from 0.800 to 0.900, and Faithfulness from 0.883 to
+0.967. HyDE Context Precision was 0.950 in all four model states, Context
+Recall ranged from 0.750 to 0.900, and Faithfulness from 0.842 to 0.954.
+HyDE exceeded the corresponding Hybrid Context Precision in three of four
+model states and increased Context Recall in two of four.
 
-In the obstetric challenge set, Hybrid Context Precision ranged from 0.760
-to 0.841, Context Recall from 0.500 to 0.714, and Faithfulness from 0.590
-to 0.986. HyDE Context Precision ranged from 0.898 to 0.919, Context Recall
-from 0.600 to 0.800, and Faithfulness from 0.764 to 0.960. HyDE achieved
-higher Context Precision than Hybrid for all four model states and higher
-Context Recall for three of four states, although these retrieval gains
-were not accompanied by uniform response-quality gains.
+In the obstetric challenge set, Hybrid Context Precision ranged from 0.775
+to 0.842, Context Recall from 0.400 to 0.500, and Faithfulness from 0.732
+to 0.966. HyDE Context Precision ranged from 0.933 to 1.000, Context Recall
+was 0.200 in all four model states, and Faithfulness ranged from 0.771 to
+0.919. HyDE achieved higher Context Precision than Hybrid for all four model
+states, while Context Recall was lower for all four.
 
 Across both scenarios, the 20 unique uncached HyDE generations averaged
 18.5 seconds, 67.1 input tokens, and 1,437.3 API output tokens. The same
 hypothetical documents were then reused from cache across the remaining
 answer-model conditions, reducing model-dependent variation in the
 query-expansion stage.
-
 % =====================================================================
 \section{Discussion}
-% =====================================================================
 Across the evaluated 20-question benchmark, the observed effect of QLoRA
-varied according to both model initialization and inference strategy. In
-No RAG conditions, QLoRA improved Answer Correctness, Answer
-Relevancy, and Semantic Similarity for Gemma~4 in both scenarios.
-MedGemma~1.5 showed the same pattern in the obstetric challenge set, but
-the MaternaQA-es subset exhibited a trade-off: correctness decreased while
-relevance and semantic similarity increased.
+under No RAG varied by model family and scenario. Answer Relevancy increased
+in all four model-scenario comparisons. Answer Correctness decreased for both
+model families in the obstetric challenge set and for MedGemma~1.5 in the
+MaternaQA-es subset; Semantic Similarity decreased for Gemma~4 in the challenge
+set but increased for MedGemma~1.5 and for both models in MaternaQA-es.
 
 Within the evaluated questions, medical pretraining did not show a uniform
 advantage after domain-specific adaptation across the tested metrics and
-configurations. MedGemma~1.5 QLoRA achieved the strongest Answer Relevancy
-with No RAG in both scenarios, suggesting that medical initialization
-may support focused clinical responses. However, Gemma~4 Base with Hybrid
-retrieval achieved the best Answer Correctness and Semantic Similarity in
-both scenarios. These findings support evaluating multiple dimensions
-rather than treating a single automatic score as a complete measure of
-quality.
+configurations. The highest Answer Relevancy under No RAG came from Gemma~4
+QLoRA in MaternaQA-es and MedGemma~1.5 QLoRA in the obstetric challenge set.
+Gemma~4 Base with Hybrid retrieval achieved the highest Answer Correctness in
+both scenarios. The highest Semantic Similarity came from Gemma~4 QLoRA with
+Hybrid retrieval in MaternaQA-es and was tied between Gemma~4 Base and QLoRA
+with HyDE in the challenge set. These findings support evaluating multiple
+dimensions rather than treating a single automatic score as a complete
+measure of quality.
 
-Hybrid retrieval generally improved Answer Correctness but often reduced
-Answer Relevancy. One plausible interpretation is that retrieved evidence
-increased overlap with reference content while encouraging longer or less
-directly focused responses. Retrieval-grounding scores were generally high
-for precision but more variable for recall, indicating that relevant
-evidence was often surfaced without consistently covering all
-reference-supporting information.
+Hybrid retrieval increased Answer Correctness in all four model conditions
+in each scenario but reduced Answer Relevancy in six of eight comparisons.
+One plausible interpretation is that retrieved evidence increased agreement
+with reference answers while sometimes reducing direct focus. Retrieval-
+grounding scores were generally high for Context Precision but more variable
+for Context Recall, indicating that relevant evidence was often surfaced
+without consistently covering all reference-supporting information.
 
-HyDE produced consistently high retrieval precision in both scenarios, but
-its effects on final answers were heterogeneous. In MaternaQA-es, it
-improved Context Precision relative to Hybrid for three model states yet
-improved Answer Correctness over Hybrid only for MedGemma~1.5 QLoRA. In the
-obstetric challenge set, it improved Context Precision for all four states
-and recovered substantially more Answer Correctness than Hybrid for
-MedGemma~1.5 Base. Better query expansion and evidence ranking therefore
-appear to be enabling factors rather than sufficient conditions for better
-answers.
-
+HyDE produced consistently high RAGAS Context Precision in both scenarios,
+but its effects on final answers were heterogeneous. In MaternaQA-es, it
+improved Context Precision relative to Hybrid in three of four model states
+and improved Answer Correctness over Hybrid only for Gemma~4 QLoRA. In the
+obstetric challenge set, it improved Context Precision for all four states,
+but increased Answer Correctness over Hybrid only for Gemma~4 QLoRA. Higher
+Context Precision therefore did not guarantee better final answers.
 % =====================================================================
 \section{Conclusions}
-% =====================================================================
-In this exploratory 20-question benchmark, grounded QLoRA improved the
-No RAG response metrics of Gemma~4 across both scenarios, while its
-effect on MedGemma~1.5 was more context-dependent. Medical pretraining did
-not show a consistent performance advantage across the tested conditions
-after identical obstetric adaptation. Hybrid retrieval improved Answer
-Correctness in all four obstetric-challenge comparisons and in three of
-four MaternaQA-es comparisons, but it could reduce Answer Relevancy,
-demonstrating a trade-off between reference agreement and directness.
+In this exploratory 20-question benchmark, the effect of grounded QLoRA under
+No RAG varied by model family and scenario. It increased Answer Relevancy in
+all four model-scenario comparisons, while effects on Answer Correctness and
+Semantic Similarity were mixed. Medical pretraining did not show a consistent
+performance advantage across the tested conditions after adaptation. Hybrid
+retrieval increased Answer Correctness in all four comparisons in each
+scenario but reduced Answer Relevancy in six of eight comparisons, indicating
+a trade-off between reference agreement and response directness.
 
-HyDE completed all planned conditions in both processed scenarios and
-generally produced high Context Precision, but it did not consistently
-improve Answer Correctness, Answer Relevancy, or Semantic Similarity over
-Hybrid retrieval. The evidence therefore supports a nuanced conclusion:
-observed benefits varied by model family, metric, and scenario. Because
-these are descriptive patterns from 10 questions per scenario, broader
-question coverage, complete evaluation, and clinician assessment remain
-necessary before drawing deployment-oriented conclusions.
-
+HyDE completed all planned conditions in both evaluated scenarios and
+generally produced high Context Precision, but it did not consistently improve
+Answer Correctness, Answer Relevancy, or Semantic Similarity over Hybrid. The
+evidence therefore supports a nuanced conclusion: observed benefits varied
+by model family, metric, and scenario. Because these are descriptive patterns
+from 10 questions per scenario, broader question coverage and clinician
+assessment remain necessary before drawing deployment-oriented conclusions.
 % =====================================================================
 %  Bibliography -- IEEEtran.bst, numeric citation order
 % =====================================================================
