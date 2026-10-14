@@ -1,0 +1,4 @@
+scenario,strategy,unique_questions,retrieval_hit_at_k_mean,retrieval_recall_at_k_mean,retrieval_reciprocal_rank_mean,retrieval_ndcg_at_k_mean
+MaternaQA-es test subset,Hybrid,10,0.9,0.9,0.6333333333333333,0.6992282869718244
+MaternaQA-es test subset,HyDE,10,0.9,0.9,0.6033333333333333,0.6779642067948914
+

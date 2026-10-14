@@ -1,0 +1,18 @@
+scenario,model,strategy,n_valid,mean,sample_sd
+MaternaQA-es test subset,Gemma 4 | Base,Hybrid,10,0.11666666666666665,0.24907235301622105
+MaternaQA-es test subset,Gemma 4 | QLoRA,Hybrid,10,0.016666666666666666,0.05270462766947299
+MaternaQA-es test subset,MedGemma 1.5 | Base,Hybrid,10,0.1511111111111111,0.32386554137309653
+MaternaQA-es test subset,MedGemma 1.5 | QLoRA,Hybrid,10,0.07732793522267208,0.19545754785360286
+MaternaQA-es test subset,Gemma 4 | Base,HyDE,10,0.13333333333333333,0.3220305943597653
+MaternaQA-es test subset,Gemma 4 | QLoRA,HyDE,10,0.01,0.0316227766016838
+MaternaQA-es test subset,MedGemma 1.5 | Base,HyDE,10,0.09206349206349207,0.24508265480150834
+MaternaQA-es test subset,MedGemma 1.5 | QLoRA,HyDE,10,0.09333333333333334,0.29514591494904874
+Obstetric challenge set,Gemma 4 | Base,Hybrid,10,0.39666666666666667,0.45608370468480053
+Obstetric challenge set,Gemma 4 | QLoRA,Hybrid,10,0.5,0.4546060565661952
+Obstetric challenge set,MedGemma 1.5 | Base,Hybrid,10,0.3683333333333333,0.43165272392755044
+Obstetric challenge set,MedGemma 1.5 | QLoRA,Hybrid,10,0.25666666666666665,0.3644884797244652
+Obstetric challenge set,Gemma 4 | Base,HyDE,10,0.4916666666666667,0.4521041341860835
+Obstetric challenge set,Gemma 4 | QLoRA,HyDE,10,0.4216666666666667,0.42412218714614497
+Obstetric challenge set,MedGemma 1.5 | Base,HyDE,10,0.6,0.40215469046341906
+Obstetric challenge set,MedGemma 1.5 | QLoRA,HyDE,10,0.5576839826839827,0.3990192700336072
+
