@@ -215,15 +215,9 @@ The unit of analysis is an item-level paired \code{qa_id}. The primary
 QLoRA estimand is the paired difference between QLoRA and base outputs
 within a fixed model family and retrieval strategy. Retrieval contrasts
 compare strategies within a fixed family and adaptation state. The
-interaction estimand is the change in the QLoRA effect across retrieval
-strategies:
-\begin{equation}
-\label{eq:interaction}
-\Delta = (Y_{Q,H} - Y_{B,H}) - (Y_{Q,N} - Y_{B,N}).
-\end{equation}
-Here $Q$ denotes QLoRA, $B$ denotes the base model, $H$ denotes Hybrid
-retrieval, and $N$ denotes the No RAG condition. Analogous contrasts
-are defined for HyDE and for the two model families.
+interaction is the QLoRA-minus-base difference under Hybrid minus that
+under No RAG, within a model family; analogous contrasts compare HyDE
+with No RAG and the two model families.
 
 \subsection{Dataset, Provenance, and Split Integrity}
 MaternaQA-es contains 5,727 Spanish obstetric question-answer pairs derived
@@ -322,18 +316,10 @@ no retrieved context.
 
 \subsection{Grounded QLoRA Fine-Tuning}
 \label{sec:qlora}
-QLoRA~\cite{dettmers2023qlora} is the parameter-adaptation method in the
-benchmark: trainable low-rank adapters on quantized base weights, which
-keeps the base model as a separately identifiable initialization.
-Fig.~\ref{fig:qlora} contrasts it with full fine-tuning, and
-Table~\ref{tab:qlora-config} summarizes the configuration used for both
-adapters.
-
-Both model families used the same MaternaQA-es training and validation
-partitions and the same grounded input representation. To maintain a
-controlled comparison between model initializations, the QLoRA
-hyperparameters and optimization settings were held constant across both
-models.
+Both model families used grounded QLoRA~\cite{dettmers2023qlora} with
+4-bit base weights and the shared settings in
+Table~\ref{tab:qlora-config}. Training and validation partitions, grounded
+inputs, and optimization settings were matched across model families.
 
 % --- Table II: single column; only the base model differs -----------------
 \begin{table}[t]
@@ -371,90 +357,52 @@ Random seed & 3407 \\
 \end{threeparttable}
 \end{table}
 
-The \code{sft_grounded} examples use the dataset's conversational
-\code{Contextofuente} representation, in which source context is presented
-with the question. This differs from retrieval at inference: training
-context is pre-associated with each example, whereas RAG selects contexts
-from the 2,268-chunk corpus for each question. The adapter is loaded only in
-QLoRA conditions.
-
-% --- Figure 1: single-column QLoRA comparison ------------------------
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{figures/ft-vs-lora.pdf}
-\caption{Comparison of full fine-tuning and LoRA adaptation.}
-\label{fig:qlora}
-\end{figure}
+The \code{sft_grounded} examples use the conversational
+\code{Contextofuente} representation: source context is pre-associated
+with each training question, unlike inference-time RAG selection from the
+2,268-chunk corpus. Only QLoRA conditions load an adapter.
 
 \subsection{Retrieval-Augmented Generation Protocol}
 \label{sec:rag-protocol}
-RAG is the second core method~\cite{lewis2020retrieval}. The protocol treats
-retrieval strategy as a reproducible experimental factor. No RAG, Hybrid
-retrieval, and independent HyDE differ in how evidence is
-prepared before the answer model receives the question and context.
-Hypothetical text is used only for query expansion.
+Retrieval strategy~\cite{lewis2020retrieval} controls evidence preparation:
+No RAG supplies none, Hybrid fuses dense and sparse retrieval, and
+independent HyDE uses hypothetical text only for query expansion.
 
 \subsubsection{Corpus Provenance and Chunk Construction}
-The separate retrieval corpus contains 2,268 chunks from curated
-obstetric source documents and is used for dense, sparse, and fused
-retrieval. The \code{clinical_score} is a corpus-filtering signal.
-
-% Compact rendering. As a full-size display this block cost five rows of
-% column height for five very short definitions. \small and a reduced \jot
-% keep it legible while reclaiming roughly two text lines, and B(W) and P(R)
-% share a row because both fit side by side at this size.
-{\small
-\setlength{\jot}{1pt}
-\begin{align}
-S(x) &= \max\bigl\{0,\, L(x) + A(x) + B(W) - P(R)\bigr\},\\
-L(x) &= \sum_{t \in T,\; t \subseteq \operatorname{norm}(x)}
-        \bigl[1 + \mathbf{1}(t \text{ has a space})\bigr],\notag\\
-A(x) &= \sum_{a \in A,\; a \subseteq \operatorname{norm}(x)} 1,\notag\\
-B(W) &= 2\mathbf{1}(W \geq 120) + 2\mathbf{1}(W \geq 350),\;
-P(R) = 3\mathbf{1}(R \geq 0.35).\notag
-\end{align}
-}
-Here $\operatorname{norm}(x)$ applies Unicode normalization, removes
-combining marks, lowercases text, replaces non-ASCII letters and
-punctuation with spaces, and collapses whitespace. $T$ is the
-clinical-term set, $A$ the action-term set, $W$ the Unicode word count, and
-$R$ the ratio of reference-matching nonempty lines to all nonempty lines.
+The retrieval corpus contains 2,268 chunks from curated obstetric documents.
+Its corpus-filtering \code{clinical_score} adds one point per clinical term
+found as a substring of normalized text (two for multiword terms) and one
+per action term. Cumulative bonuses add two points at each Unicode word-count
+threshold of 120 and 350; a reference-line ratio of at least 0.35 subtracts
+three points, with the final score floored at zero. The ratio counts
+reference-matching nonempty lines over all nonempty lines. Normalization
+applies Unicode normalization, removes combining marks, lowercases text,
+replaces non-ASCII letters and punctuation with spaces, and collapses whitespace.
 
 \subsubsection{Dense and Sparse Retrieval}
-Dense retrieval uses \code{BAAI/bge-m3}~\cite{chen2024bge}.
-SentenceTransformer produces normalized dense vectors on CPU with
-\code{batch_size=32}. The persistent local vector table is
-LanceDB~\cite{lancedb2026vector}.
-Because no approximate vector index is created, search is exhaustive exact
-cosine search. The default dense retrieval depth is $k = 5$.
-
-Sparse retrieval is Okapi BM25 (\code{rank_bm25/BM25Okapi}) over Unicode
-lowercase word tokens. Retrieval outputs are recorded before answer
-generation so retrieval quality and latency can be analyzed separately from
-response generation.
+Dense retrieval uses \code{BAAI/bge-m3}~\cite{chen2024bge} with
+SentenceTransformer-normalized vectors on CPU (\code{batch_size=32}) in a
+persistent local LanceDB table~\cite{lancedb2026vector}. Search is exhaustive
+exact cosine search, without an approximate index; default depth is five.
+Sparse retrieval uses Okapi BM25 (\code{rank_bm25/BM25Okapi}) over Unicode
+lowercase word tokens. Outputs are recorded before answer generation for
+separate retrieval-quality and latency analysis.
 
 \subsubsection{Canonical Hybrid Retrieval}
 Hybrid retrieval fuses dense and BM25 rankings by reciprocal rank fusion
-with \code{rank_constant=60}~\cite{cormack2009reciprocal}. For a requested
-final depth $k$, the candidate depth is:
-\begin{equation}
-\label{eq:candidate-depth}
-k_c = \min(\lvert C \rvert,\, \max(4k, 50)).
-\end{equation}
-Ties are broken by stable chunk ID, and the final top-$k$ chunks are
-supplied to the answer model.
+with \code{rank_constant=60}~\cite{cormack2009reciprocal}. Candidate depth
+is the greater of four times the requested final depth and 50, capped by
+corpus size. Stable chunk IDs break ties; the final five chunks are supplied
+to the answer model.
 
 \subsubsection{Canonical Independent HyDE Retrieval}
-HyDE~\cite{gao2023precise} uses a dedicated hypothetical-document
-generator, separate from the answer model, to produce a Spanish
-clinical-document passage from the question. The retained runs used the
-OpenAI provider with \code{gpt-5-mini-2025-08-07}. Hypothetical documents
-were generated once per question and cached for reuse across answer-model
-conditions; dense retrieval then embeds that text with BGE-M3 and searches
-the corpus by exact cosine similarity. Only the retrieved corpus chunks,
-not the hypothetical text, are supplied as evidence to the answer
-model~\cite{ji2023survey}. The cache is separated by dataset mode, provider,
-and generator model, and row reuse checks \code{qa_id} and a question hash.
+HyDE~\cite{gao2023precise} independently generates a Spanish clinical passage
+from each question using OpenAI \code{gpt-5-mini-2025-08-07}, separate from
+the answer model. Each passage is generated once, cached across answer-model
+conditions, and embedded with BGE-M3 for exact cosine search. Only retrieved
+corpus chunks, never hypothetical text, provide answer
+evidence~\cite{ji2023survey}. Cache namespaces separate dataset mode,
+provider, and generator model; reuse checks \code{qa_id} and a question hash.
 
 \subsubsection{No RAG Control}
 The No RAG control returns no retrieved contexts and
@@ -494,11 +442,8 @@ and RAGAS version cannot be verified from these files.
 Operational variables include input, output, and total token counts;
 retrieval, generation, and end-to-end latency; and output tokens per
 second. Wall-clock output rate is descriptive and not treated as
-hardware-independent throughput.
-\begin{equation}
-\label{eq:tps}
-\mathrm{TPS} = \frac{N_{\mathrm{out}}}{T_{\mathrm{gen}}}.
-\end{equation}
+hardware-independent throughput; it divides output-token count by
+generation time in seconds.
 
 \subsection{Analysis Plan}
 The primary analysis is descriptive and item-level. Means are computed from
@@ -512,10 +457,11 @@ under matched conditions.
 The summary used the same 10 \code{qa_id} values shared by all 12
 conditions in each scenario.
 
-Approximate marginal 95\% Student-$t$ confidence intervals were calculated
-as $\bar{x} \pm t_{0.975,n-1}\, s/\sqrt{n}$ from exported means, sample
-standard deviations, and counts ($n = 10$). This independent-question
-approximation is limited by nonrandom selection and shared source documents.
+Approximate marginal 95\% Student-$t$ confidence intervals use exported
+means, sample standard deviations, and counts (10 questions): the mean plus
+or minus the two-sided critical value with nine degrees of freedom times
+the standard error. This independent-question approximation is limited by
+nonrandom selection and shared source documents.
 Intervals for all metrics and unstandardized mean differences accompany the
 reproducibility files. Paired tests, bootstrap intervals, and standardized
 paired effects require current question-level scores, unavailable in the
