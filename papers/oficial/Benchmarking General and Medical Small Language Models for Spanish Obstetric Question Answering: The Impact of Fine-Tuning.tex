@@ -41,10 +41,12 @@
 \usepackage{threeparttable}    % professional table notes
 \usepackage{textcomp}
 
-% Avoid stacking full-width tables on one page or multiple figures in one
-% column, keeping the float sequence close to the relevant explanations.
+% Avoid stacking multiple figures in one column and keep the float sequence
+% close to the relevant explanations. Two full-width tables may share a page
+% top: the uncertainty (Table IV) and audit (Table V) floats belong together
+% and would otherwise push a mostly empty page at the end of the paper.
 \setcounter{topnumber}{1}
-\setcounter{dbltopnumber}{1}
+\setcounter{dbltopnumber}{2}
 
 % --- Citations and hyperlinks ---------------------------------------
 \usepackage{cite}              % IEEE-recommended numeric citation handling
@@ -539,6 +541,15 @@ under matched conditions.
 The summary used the same 10 \code{qa_id} values shared by all 12
 conditions in each scenario.
 
+Approximate marginal 95\% Student-$t$ confidence intervals were calculated
+as $\bar{x} \pm t_{0.975,n-1}\, s/\sqrt{n}$ from exported means, sample
+standard deviations, and counts ($n = 10$). This independent-question
+approximation is limited by nonrandom selection and shared source documents.
+Intervals for all metrics and unstandardized mean differences accompany the
+reproducibility files. Paired tests, bootstrap intervals, and standardized
+paired effects require current question-level scores, unavailable in the
+aggregate exports, and are not reported.
+
 \subsection{Reproducibility and Experimental Scope}
 Reproducibility requires recording the MaternaQA-es revision,
 retrieval-corpus hash, complete configuration, prompts, model and adapter
@@ -678,6 +689,91 @@ Across both scenarios, the 20 unique uncached HyDE generations averaged
 hypothetical documents were then reused from cache across the remaining
 answer-model conditions, reducing model-dependent variation in the
 query-expansion stage.
+
+\subsection{Uncertainty of Answer Correctness}
+Table~\ref{tab:correctness-ci} reports broad approximate marginal 95\%
+confidence intervals for Answer Correctness, indicating substantial
+item-level variability. They do not quantify paired differences, and overlap
+is not a significance test. Rankings remain exploratory; statistically
+significant superiority is not established.
+
+% --- Table IV: full-width, caption above, no vertical rules ---------
+\begin{table*}[t]
+\centering
+\begin{threeparttable}
+\caption{Answer Correctness: Mean and Approximate Marginal 95\% Confidence
+Interval}
+\label{tab:correctness-ci}
+\scriptsize
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc@{}}
+\toprule
+Model and state & No RAG & Hybrid & HyDE \\
+\midrule
+\multicolumn{4}{c}{\textit{MaternaQA-es test subset}} \\
+\midrule
+Gemma 4 Base        & 0.372 [0.238, 0.506] & 0.649 [0.456, 0.841] & 0.560 [0.375, 0.744] \\
+Gemma 4 QLoRA       & 0.384 [0.269, 0.500] & 0.605 [0.422, 0.788] & 0.637 [0.441, 0.833] \\
+MedGemma 1.5 Base   & 0.388 [0.258, 0.517] & 0.599 [0.398, 0.801] & 0.595 [0.387, 0.803] \\
+MedGemma 1.5 QLoRA  & 0.330 [0.213, 0.446] & 0.609 [0.454, 0.764] & 0.574 [0.401, 0.747] \\
+\midrule
+\multicolumn{4}{c}{\textit{Obstetric challenge set}} \\
+\midrule
+Gemma 4 Base        & 0.359 [0.159, 0.558] & 0.457 [0.244, 0.671] & 0.335 [0.125, 0.545] \\
+Gemma 4 QLoRA       & 0.205 [0.127, 0.282] & 0.349 [0.185, 0.513] & 0.399 [0.254, 0.544] \\
+MedGemma 1.5 Base   & 0.287 [0.164, 0.411] & 0.402 [0.139, 0.664] & 0.260 [0.123, 0.396] \\
+MedGemma 1.5 QLoRA  & 0.234 [0.152, 0.315] & 0.455 [0.249, 0.660] & 0.316 [0.098, 0.533] \\
+\bottomrule
+\end{tabular*}
+\begin{tablenotes}[flushleft]
+\item[] \textit{Note.} Mean [95\% CI]; $n = 10$. Marginal $t$ intervals
+assume independent questions; they do not test paired differences.
+\end{tablenotes}
+\end{threeparttable}
+\end{table*}
+
+\subsection{Illustrative Grounded-Answer Audit}
+Three archived base--QLoRA pairs from \code{master_eval.csv}
+(\code{sft_grounded}, supplied context) were purposively audited, separately
+from Table~\ref{tab:results}. Table~\ref{tab:audit} gives English summaries;
+Spanish records and identifiers accompany the reproducibility files.
+Source-support checks are not clinician adjudication, and scores are not
+pooled.
+
+% --- Table V: full-width, caption above, no vertical rules ----------
+% p{} columns: each cell holds a full sentence, so the table must wrap
+% instead of stretching a single unbreakable line across \textwidth.
+\begin{table*}[t]
+\centering
+\begin{threeparttable}
+\caption{Illustrative Auxiliary Audit of Archived Source-Grounded Responses}
+\label{tab:audit}
+\scriptsize
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}>{\raggedright\arraybackslash}p{0.16\textwidth}>{\raggedright\arraybackslash}p{0.27\textwidth}>{\raggedright\arraybackslash}p{0.27\textwidth}>{\raggedright\arraybackslash}p{0.22\textwidth}@{}}
+\toprule
+Case and question focus & Supplied evidence / base response & QLoRA response & Observed issue \\
+\midrule
+E1: CAMVA-COVID-19 study objective (Gemma~4) &
+The excerpt and base answer describe assessing menstrual changes and dysmenorrhea. &
+Adds an unsupported phase-II randomized trial with 1,200 women and 12 fertility centers. &
+Unsupported study-design details after adaptation. \\
+E2: Timing of folic-acid initiation (MedGemma~1.5) &
+The source specifies early/preconception initiation; Base adds 4~mg/day, absent from that excerpt. &
+Keeps the supported timing without the added dose, but repeats the recommendation. &
+Better source alignment with repetitive output. \\
+E3: Rationale for more prenatal visits (Gemma~4) &
+The source and Base cite perinatal-mortality concerns with fewer visits and psychosocial care. &
+Adds delivery-site continuity and a claim of no maternal/neonatal outcome differences. &
+Unsupported additions and conflicting outcome statements. \\
+\bottomrule
+\end{tabular*}
+\begin{tablenotes}[flushleft]
+\item[] \textit{Note.} Purposive auxiliary examples do not estimate error
+rates. Current Hybrid/HyDE responses are unavailable; these cases do not
+establish retrieval-specific errors.
+\end{tablenotes}
+\end{threeparttable}
+\end{table*}
+
 % =====================================================================
 \section{Discussion}
 Across the evaluated 20-question benchmark, the observed effect of QLoRA
@@ -713,6 +809,10 @@ and improved Answer Correctness over Hybrid only for Gemma~4 QLoRA. In the
 obstetric challenge set, it improved Context Precision for all four states,
 but increased Answer Correctness over Hybrid only for Gemma~4 QLoRA. Higher
 Context Precision therefore did not guarantee better final answers.
+
+The auxiliary cases (Table~\ref{tab:audit}) combine supported core answers
+with unsupported additions or repetition; they establish neither overfitting
+nor a causal explanation for the retrieval differences.
 % =====================================================================
 \section{Conclusions}
 The results suggest distinct roles for the three inference strategies rather
@@ -754,10 +854,12 @@ clinical reliability. A broader question set and clinician assessment are
 needed before considering clinical use.
 % =====================================================================
 \section{Limitations and Future Work}
-The evaluation covers 10 questions per scenario, so the results are
-descriptive patterns rather than statistical conclusions. Scoring relies on
-automatic RAGAS metrics; clinician assessment and broader question coverage
-are left for future work.
+The evaluation covers 10 questions per scenario. Its approximate marginal
+intervals do not resolve paired statistical significance or account for
+document clustering, subset-selection bias, or evaluator variability. The
+auxiliary grounded audit cannot replace matched Hybrid/HyDE error analysis
+without current question-level run files. Automatic RAGAS scores require
+complementary clinician assessment and broader question coverage.
 
 % =====================================================================
 %  Bibliography -- IEEEtran.bst, numeric citation order
