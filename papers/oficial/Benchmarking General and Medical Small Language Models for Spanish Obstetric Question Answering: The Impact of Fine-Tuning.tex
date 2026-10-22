@@ -302,7 +302,7 @@ scenario-condition runs were represented in the analysis.
 \caption{Prespecified Factorial Experiment Matrix}
 \label{tab:factorial}
 \scriptsize
-\begin{tabular}{llll}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}llll@{}}
 \toprule
 ID & Model family & Adaptation & Retrieval \\
 \midrule
@@ -319,7 +319,7 @@ C10 & MedGemma 1.5 & QLoRA & No RAG \\
 C11 & MedGemma 1.5 & QLoRA & Hybrid \\
 C12 & MedGemma 1.5 & QLoRA & HyDE \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \begin{tablenotes}[flushleft]
 \footnotesize
 \item[] \textit{Note.} The complete design is 2 model families $\times$
@@ -356,27 +356,36 @@ models.
 \caption{Grounded QLoRA Configuration Used for Both Model Families}
 \label{tab:qlora-config}
 \scriptsize
-% Both adapters share every hyperparameter, so a full-width two-column matrix
-% would print the same value twice on 17 of 18 rows. The shared settings are
-% stated once in the note; the repository ids are in the note too, because two
-% full ids cannot sit side by side inside one column at a readable size.
-\begin{tabular}{lll}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{\dimexpr0.43\columnwidth-\tabcolsep\relax}%
+                  >{\raggedright\arraybackslash}p{\dimexpr0.57\columnwidth-\tabcolsep\relax}@{}}
 \toprule
-Parameter & Gemma 4 E2B & MedGemma 1.5 4B \\
+Parameter & Shared setting \\
 \midrule
-Base model & \code{gemma-4-E2B-it} & \code{medgemma-1.5-4b-it} \\
+Base model & Gemma 4 E2B: \code{google/gemma-4-E2B-it}\newline
+             MedGemma 1.5 4B: \code{google/medgemma-1.5-4b-it} \\
+Training representation & sft\_grounded \\
+Train / validation examples & 5,093 / 306 \\
+Quantization & 4-bit NF4, double quantization \\
+LoRA rank ($r$) & 16 \\
+LoRA alpha & 16 \\
+LoRA dropout & 0.05 \\
+Target modules & All linear (all-linear) \\
+Learning rate & $2 \times 10^{-4}$ \\
+Batch size & 1 per device \\
+Gradient accumulation steps & 8 \\
+Effective batch size & 8 \\
+Epochs / training steps & 2 / 1,274 \\
+Optimizer & AdamW 8-bit \\
+LR scheduler & Cosine \\
+Maximum sequence length & 1,024 \\
+Packing & Disabled \\
+Random seed & 3407 \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item[] \textit{Note.} Repositories: \code{google/gemma-4-E2B-it} and
-\code{google/medgemma-1.5-4b-it}. Both adapters were trained identically, so
-only the base model differs. Shared settings: \code{sft_grounded} input; 5,093
-training and 306 validation examples; 4-bit NF4 with double quantization; LoRA
-rank 16, alpha 16, dropout 0.05 on all linear modules; learning rate
-$2 \times 10^{-4}$; batch size 1 per device with 8 gradient-accumulation steps
-(effective batch 8); 2 epochs over 1,274 steps; AdamW 8-bit with a cosine
-schedule; 1,024-token maximum sequence length; packing disabled; seed 3407.
+\item[] \textit{Note.} Shared settings apply to Gemma 4 E2B and MedGemma 1.5 4B;
+only the base model differs, as identified above.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
