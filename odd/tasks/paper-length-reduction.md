@@ -58,9 +58,9 @@ vertical space on every page it touched.
 - [x] T5 Audit the remaining layout and record what is left as text-level
       (content) options instead of layout ones.
 - [x] T6 Commit the work unit.
-- [ ] T7 Correct both table layouts as one bounded work unit, rebuild the PDF,
+- [x] T7 Correct both table layouts as one bounded work unit, rebuild the PDF,
       verify all original rows and widths, inspect rendered pages, and commit
-      only the authorized source/PDF/task-document changes. Proof pending.
+      only the authorized source/PDF/task-document changes. Proof below.
 
 ## Historical results reported for c753f5c (not current acceptance)
 
@@ -178,6 +178,9 @@ assessment and independent checks. This executor does not invoke review.
   No required build/layout check skipped. The optional academic-paper workflow
   entrypoint was absent from the injected skill installation; the exact
   requested SKILL.md was loaded and manuscript fidelity rules were followed.
-- Source/PDF correction commit and final tracking commit: pending. Parent
-  assessment and independent spot-check remain pending; no user acceptance
-  or RDD review is claimed.
+- Source/PDF correction commit:
+  `4357d06ffa2839df76c779835b9a8b380b7c75e7`
+  (`fix(paper): restore parameter rows and full-column table width`).
+  The following tracking-only commit records this exact identity without
+  self-reference. Parent assessment and independent spot-check remain pending;
+  no user acceptance or RDD review is claimed.
