@@ -293,98 +293,93 @@ result artifacts covered No RAG, Hybrid, and HyDE for all four
 model/adaptation combinations in both scenarios; therefore, all 24
 scenario-condition runs were represented in the analysis.
 
-% --- Table I: full-width, caption above, no vertical rules -----------
-\begin{table*}[t]
+% --- Table I: single column. The three factor columns already encode the
+% condition, so the old fifth column restated each row in prose and forced a
+% full-width float that cost vertical space on every page it touched.
+\begin{table}[t]
 \centering
 \begin{threeparttable}
 \caption{Prespecified Factorial Experiment Matrix}
 \label{tab:factorial}
 \scriptsize
-\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}c l l l p{0.40\textwidth}@{}}
+\begin{tabular}{llll}
 \toprule
-ID & Model family & Adaptation & Retrieval & Condition definition \\
+ID & Model family & Adaptation & Retrieval \\
 \midrule
-C01 & Gemma 4 & Base & No RAG & Base weights; no retrieved context \\
-C02 & Gemma 4 & Base & Hybrid & Base weights; canonical Hybrid retrieval \\
-C03 & Gemma 4 & Base & HyDE & Base weights; canonical independent HyDE retrieval \\
-C04 & Gemma 4 & QLoRA & No RAG & Grounded QLoRA adapter; no retrieved context \\
-C05 & Gemma 4 & QLoRA & Hybrid & Grounded QLoRA adapter; canonical Hybrid retrieval \\
-C06 & Gemma 4 & QLoRA & HyDE & Grounded QLoRA adapter; canonical independent HyDE retrieval \\
-C07 & MedGemma 1.5 & Base & No RAG & Base weights; no retrieved context \\
-C08 & MedGemma 1.5 & Base & Hybrid & Base weights; canonical Hybrid retrieval \\
-C09 & MedGemma 1.5 & Base & HyDE & Base weights; canonical independent HyDE retrieval \\
-C10 & MedGemma 1.5 & QLoRA & No RAG & Grounded QLoRA adapter; no retrieved context \\
-C11 & MedGemma 1.5 & QLoRA & Hybrid & Grounded QLoRA adapter; canonical Hybrid retrieval \\
-C12 & MedGemma 1.5 & QLoRA & HyDE & Grounded QLoRA adapter; canonical independent HyDE retrieval \\
+C01 & Gemma 4     & Base  & No RAG \\
+C02 & Gemma 4     & Base  & Hybrid \\
+C03 & Gemma 4     & Base  & HyDE \\
+C04 & Gemma 4     & QLoRA & No RAG \\
+C05 & Gemma 4     & QLoRA & Hybrid \\
+C06 & Gemma 4     & QLoRA & HyDE \\
+C07 & MedGemma 1.5 & Base  & No RAG \\
+C08 & MedGemma 1.5 & Base  & Hybrid \\
+C09 & MedGemma 1.5 & Base  & HyDE \\
+C10 & MedGemma 1.5 & QLoRA & No RAG \\
+C11 & MedGemma 1.5 & QLoRA & Hybrid \\
+C12 & MedGemma 1.5 & QLoRA & HyDE \\
 \bottomrule
-\end{tabular*}
+\end{tabular}
 \begin{tablenotes}[flushleft]
+\footnotesize
 \item[] \textit{Note.} The complete design is 2 model families $\times$
-2 adaptation states $\times$ 3 retrieval strategies. All 12 conditions were
-observed in each of the two evaluation scenarios.
+2 adaptation states $\times$ 3 retrieval strategies; all 12 conditions were
+observed in each of the two evaluation scenarios. \textit{Base} loads the
+published weights without an adapter, and \textit{QLoRA} loads the grounded
+adapter described in Section~\ref{sec:qlora}. \textit{No RAG} supplies no
+retrieved context, whereas \textit{Hybrid} and \textit{HyDE} are the two
+canonical retrieval strategies of
+Section~\ref{sec:rag-protocol}.
 \end{tablenotes}
 \end{threeparttable}
-\end{table*}
+\end{table}
 
 \subsection{Grounded QLoRA Fine-Tuning}
+\label{sec:qlora}
 QLoRA~\cite{dettmers2023qlora} is the parameter-adaptation method in the
 benchmark: trainable low-rank adapters on quantized base weights, which
 keeps the base model as a separately identifiable initialization.
 Fig.~\ref{fig:qlora} contrasts it with full fine-tuning, and
-Table~\ref{tab:qlora-config} specifies the NF4 quantization and BF16
-computation settings.
+Table~\ref{tab:qlora-config} summarizes the configuration used for both
+adapters, including the shared quantization and BF16 computation settings.
 
-% The paragraph below must not straddle the Table I float on the next page:
-% without this it ends on "...both models. Table II" and the reader finds the
-% verb after a full-width table, which also misreads as if it referred to Table I.
 Both model families used the same MaternaQA-es training and validation
 partitions and the same grounded input representation. To maintain a
 controlled comparison between model initializations, the QLoRA
 hyperparameters and optimization settings were held constant across both
-models. Table~\ref{tab:qlora-config} summarizes the training configuration
-used to produce the evaluated adapters.
+models.
 
-% --- Table II: full-width, caption above, no vertical rules ----------
-\begin{table*}[t]
+% --- Table II: single column; only the base model differs -----------------
+\begin{table}[t]
 \centering
 \begin{threeparttable}
-\caption{QLoRA Fine-Tuning Configuration Used for Both Model Families}
+\caption{Grounded QLoRA Configuration Used for Both Model Families}
 \label{tab:qlora-config}
 \scriptsize
-% tabular* + \extracolsep{\fill} spans exactly \textwidth: the model
-% identifiers do not fit a single column, so the float is table* and the
-% columns are spread deliberately instead of being hand-padded.
-\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcc@{}}
+% Both adapters share every hyperparameter, so a full-width two-column matrix
+% would print the same value twice on 17 of 18 rows. The shared settings are
+% stated once in the note; the repository ids are in the note too, because two
+% full ids cannot sit side by side inside one column at a readable size.
+\begin{tabular}{lll}
 \toprule
-Parameter & Gemma 4 E2B QLoRA & MedGemma 1.5 4B QLoRA \\
+Parameter & Gemma 4 E2B & MedGemma 1.5 4B \\
 \midrule
-Base model & google/gemma-4-E2B-it & google/medgemma-1.5-4b-it \\
-Training representation & sft\_grounded & sft\_grounded \\
-Train / validation examples & 5,093 / 306 & 5,093 / 306 \\
-Quantization & 4-bit NF4, double quantization & 4-bit NF4, double quantization \\
-LoRA rank ($r$) & 16 & 16 \\
-LoRA alpha & 16 & 16 \\
-LoRA dropout & 0.05 & 0.05 \\
-Target modules & All linear (all-linear) & All linear (all-linear) \\
-Learning rate & $2 \times 10^{-4}$ & $2 \times 10^{-4}$ \\
-Batch size & 1 per device & 1 per device \\
-Gradient accumulation steps & 8 & 8 \\
-Effective batch size & 8 & 8 \\
-Epochs / training steps & 2 / 1,274 & 2 / 1,274 \\
-Optimizer & AdamW 8-bit & AdamW 8-bit \\
-LR scheduler & Cosine & Cosine \\
-Maximum sequence length & 1,024 & 1,024 \\
-Packing & Disabled & Disabled \\
-Random seed & 3407 & 3407 \\
+Base model & \code{gemma-4-E2B-it} & \code{medgemma-1.5-4b-it} \\
 \bottomrule
-\end{tabular*}
+\end{tabular}
 \begin{tablenotes}[flushleft]
-\item[] \textit{Note.} Both model families used the same training and
-validation partitions, grounded input representation, and QLoRA
-optimization settings.
+\footnotesize
+\item[] \textit{Note.} Repositories: \code{google/gemma-4-E2B-it} and
+\code{google/medgemma-1.5-4b-it}. Both adapters were trained identically, so
+only the base model differs. Shared settings: \code{sft_grounded} input; 5,093
+training and 306 validation examples; 4-bit NF4 with double quantization; LoRA
+rank 16, alpha 16, dropout 0.05 on all linear modules; learning rate
+$2 \times 10^{-4}$; batch size 1 per device with 8 gradient-accumulation steps
+(effective batch 8); 2 epochs over 1,274 steps; AdamW 8-bit with a cosine
+schedule; 1,024-token maximum sequence length; packing disabled; seed 3407.
 \end{tablenotes}
 \end{threeparttable}
-\end{table*}
+\end{table}
 
 The \code{sft_grounded} examples use the dataset's conversational
 \code{Contextofuente} representation, in which source context is presented
@@ -402,6 +397,7 @@ QLoRA conditions.
 \end{figure}
 
 \subsection{Retrieval-Augmented Generation Protocol}
+\label{sec:rag-protocol}
 RAG is the second core method~\cite{lewis2020retrieval}. The protocol treats
 retrieval strategy as a reproducible experimental factor. No RAG, Hybrid
 retrieval, and independent HyDE differ in how evidence is
@@ -413,16 +409,21 @@ The separate retrieval corpus contains 2,268 chunks from curated
 obstetric source documents and is used for dense, sparse, and fused
 retrieval. The \code{clinical_score} is a corpus-filtering signal.
 
-% A single equation number for the whole scoring definition: \notag removes
-% the numbers of the continuation rows, which are never referenced.
+% Compact rendering. As a full-size display this block cost five rows of
+% column height for five very short definitions. \small and a reduced \jot
+% keep it legible while reclaiming roughly two text lines, and B(W) and P(R)
+% share a row because both fit side by side at this size.
+{\small
+\setlength{\jot}{1pt}
 \begin{align}
 S(x) &= \max\bigl\{0,\, L(x) + A(x) + B(W) - P(R)\bigr\},\\
 L(x) &= \sum_{t \in T,\; t \subseteq \operatorname{norm}(x)}
-        \bigl[1 + \mathbf{1}(t \text{ contains a space})\bigr],\notag\\
+        \bigl[1 + \mathbf{1}(t \text{ has a space})\bigr],\notag\\
 A(x) &= \sum_{a \in A,\; a \subseteq \operatorname{norm}(x)} 1,\notag\\
-B(W) &= 2\mathbf{1}(W \geq 120) + 2\mathbf{1}(W \geq 350),\notag\\
-P(R) &= 3\mathbf{1}(R \geq 0.35).\notag
+B(W) &= 2\mathbf{1}(W \geq 120) + 2\mathbf{1}(W \geq 350),\;
+P(R) = 3\mathbf{1}(R \geq 0.35).\notag
 \end{align}
+}
 Here $\operatorname{norm}(x)$ applies Unicode normalization, removes
 combining marks, lowercases text, replaces non-ASCII letters and
 punctuation with spaces, and collapses whitespace. $T$ is the
