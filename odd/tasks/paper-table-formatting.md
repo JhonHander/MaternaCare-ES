@@ -6,7 +6,7 @@ Format Tables I–IV and their notes, headings and direct introductory reference
 for readable, locally applied 8-point table typography. **Parent read back this
 file/full mirror 3212, reconciled the approved Conclusions, and authorized sole-writer
 T1 continuation with native IEEEtran table typography. Source/PDF proof passed;
-the work-unit commit is pending.**
+the work-unit commit is recorded below; parent assessment remains pending.**
 
 ## Scope and protected content
 
@@ -50,7 +50,7 @@ three-paragraph Conclusions (Engram 3222), captured byte-for-byte before edits.
 
 ## Stable task and acceptance
 
-- [ ] **T1 — Correct all retained table typography/clarity and close one checked
+- [x] **T1 — Correct all retained table typography/clarity and close one checked
   work unit.** Route: **delegated-direct**, one bounded writer, no child agents.
   Preparation plus nontrivial TeX/PDF changes trigger this record/full mirror.
 
@@ -110,12 +110,12 @@ or count exceeds 400, parent resolves delivery before any commit. This is advice
 not a code cap: never omit proof, minify, trim cosmetically or split artificially.
 After parent continuation and proof, one Conventional Commit on this feature branch
 may close T1 with checks/docs; attribute captured preexisting edits, not as new work.
-Do not stage the canceled STIX record. No PR/push/merge. Committed running count: 0.
+Do not stage the canceled STIX record. No PR/push/merge. Committed running count: 398.
 
 TDD/application runtime: N/A, passive LaTeX table typesetting, no Python feature.
 No dataset/model tests, downloads, installs, native review calls or RDD changes.
 Prior native preflight was unsupported, retry_safe=false; parent owns independent
-spot-check and review/risk assessment. T1 is **unchecked pending its commit**;
+spot-check and review/risk assessment. T1 is **complete**;
 verification passed. Mirror topic: `odd/paper-table-formatting/tasks`.
 
 ## Reconciled baseline and current proof
@@ -163,6 +163,8 @@ verification passed. Mirror topic: `odd/paper-table-formatting/tasks`.
   `b04af95870e7192543527336d06db69eba16d2832c452b7c3ff4bc2cf68a723b`.
 - Rollback: restore `baseline/reconciled.tex` and rebuild its matching PDF,
   preserving the approved removals/move/Conclusions. No normalizer ran after freeze.
+- Work-unit commit: `0bb01844e13d2031d238806c2c3fc59965f49c31`.
+  This tracking-only update records its identity and closes T1.
 
 Complete only T1 with the reconciled baseline; no contact with another writer,
 additional feature, native review call or RDD switch change is authorized.
