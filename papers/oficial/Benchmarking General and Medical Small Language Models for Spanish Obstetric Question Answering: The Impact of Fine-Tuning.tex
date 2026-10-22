@@ -92,20 +92,22 @@ Spanish Obstetric Question Answering: The Impact of Fine-Tuning}
 \IEEEauthorblockN{Jhon H. Mej\'ia-Muñoz}
 \IEEEauthorblockA{\textit{Facultad de Ingenier\'ia, IUE}\\
 Envigado, Colombia\\
-ORCID: 0009-0008-7768-4072}
+0009-0008-7768-4072}
 \and
 \IEEEauthorblockN{Nicol\'as Hoyos-Giraldo}
 \IEEEauthorblockA{\textit{Facultad de Ingenier\'ia, IUE}\\
 Envigado, Colombia\\
-ORCID: 0009-0008-7768-4072}
+0009-0008-7768-4072}
 \and
 \IEEEauthorblockN{Daniel Betancur-Vasquez}
 \IEEEauthorblockA{\textit{Facultad de Ingenier\'ia, IUE}\\
-Envigado, Colombia}
+Envigado, Colombia\\
+0000-0003-4834-7268}
 \and
 \IEEEauthorblockN{Kevin D. Trujillo}
 \IEEEauthorblockA{\textit{Facultad de Ingenier\'ia, IUE}\\
-Envigado, Colombia}
+Envigado, Colombia\\
+0009-0001-7678-2681}
 }
 
 \maketitle
@@ -136,10 +138,8 @@ quality were heterogeneous and model-dependent. Under No RAG, QLoRA increased
 Answer Relevancy in all four model-scenario comparisons, while changes in
 Answer Correctness and Semantic Similarity were mixed. Given the limited
 evaluation of 10 questions per scenario, these findings should be
-interpreted as preliminary descriptive patterns rather than definitive
-evidence of model or retrieval-strategy superiority. Broader evaluation and
-clinician review are needed.
-\end{abstract}\end{abstract}
+interpreted as preliminary descriptive patterns.
+\end{abstract}
 
 \begin{IEEEkeywords}
 Small language models, QLoRA, retrieval-augmented generation, HyDE,
@@ -208,7 +208,9 @@ two levels: Google Gemma~4 E2B instruction-tuned
 base weights without an adapter and grounded QLoRA. Retrieval strategy has
 three planned levels: the No RAG control, canonical
 Hybrid retrieval, and canonical independent HyDE. Their Cartesian product
-defines 12 planned conditions.
+defines 12 planned conditions. Throughout the paper, ``Base'' means no
+QLoRA adapter, and ``No RAG'' means no retrieved context (the model answers
+from the question alone); the two are independent and can be combined.
 
 The unit of analysis is an item-level paired \code{qa_id}. The primary
 QLoRA estimand is the paired difference between QLoRA and base outputs
@@ -333,7 +335,6 @@ computation settings.
 % The paragraph below must not straddle the Table I float on the next page:
 % without this it ends on "...both models. Table II" and the reader finds the
 % verb after a full-width table, which also misreads as if it referred to Table I.
-\needspace{8\baselineskip}
 Both model families used the same MaternaQA-es training and validation
 partitions and the same grounded input representation. To maintain a
 controlled comparison between model initializations, the QLoRA
@@ -406,20 +407,10 @@ prepared before the answer model receives the question and context.
 Hypothetical text is used only for query expansion. Fig.~\ref{fig:rag-types}
 summarizes the three variants.
 
-% --- Single-column RAG variants figure, caption below ----------------
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{figures/rag-types.pdf}
-\caption{RAG variants used in the benchmark: No RAG, Hybrid retrieval
-with dense and sparse fusion, and independent HyDE retrieval.}
-\label{fig:rag-types}
-\end{figure}
-
 \subsubsection{Corpus Provenance and Chunk Construction}
 The separate retrieval corpus contains 2,268 chunks from curated
 obstetric source documents and is used for dense, sparse, and fused
-retrieval. The \code{clinical_score} is a corpus-filtering signal, not
-clinical validation.
+retrieval. The \code{clinical_score} is a corpus-filtering signal.
 
 % A single equation number for the whole scoring definition: \notag removes
 % the numbers of the continuation rows, which are never referenced.
@@ -479,6 +470,16 @@ omits the retrieved-context block from the answer prompt. Context-dependent
 retrieval metrics are therefore not defined and are not assigned a value of
 zero.
 
+% --- Single-column RAG variants figure, caption below ----------------
+% Placed after the technique descriptions so it does not sit next to Fig. 1.
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/rag-types.pdf}
+\caption{RAG variants used in the benchmark: No RAG, Hybrid retrieval
+with dense and sparse fusion, and independent HyDE retrieval.}
+\label{fig:rag-types}
+\end{figure}
+
 \subsection{Inference and Prompt Controls}
 All answer prompts are written in Spanish. RAG prompts contain a clearly
 delimited context block with positional labels and the question. Provenance
@@ -494,11 +495,10 @@ Retrieval generation and answer generation remain separate stages.
 
 \subsection{Evaluation Framework and Metrics}
 RAGAS 0.4.3~\cite{es2024ragas} is used as an external automatic evaluation
-layer. It is neither the retriever nor a clinical expert.
+layer.
 Response-quality, retrieval-quality, and operational measurement domains
 are kept separate before paired contrasts and interaction analysis.
-Figure~\ref{fig:ragas-eval-workflow} illustrates the RAGAS evaluation
-workflow, showing how each part contributes to scoring the responses.
+Fig.~\ref{fig:ragas-eval-workflow} shows the evaluation workflow.
 \begin{figure}[!t]
 \centering
 \includegraphics[width=\columnwidth]{figures/ragas-eval-workflow.pdf}
@@ -516,8 +516,7 @@ Faithfulness, Answer Relevancy, Answer Correctness, and Semantic Similarity.
 \subsubsection{RAG Benchmark Evaluator}
 The RAG evaluator uses six metrics: Context Precision, Context Recall,
 Faithfulness, Answer Relevancy, Answer Correctness, and Semantic
-Similarity. Their definitions follow RAGAS and are not restated here; the
-scoring pipeline is summarized in Fig.~\ref{fig:ragas-eval-workflow}.
+Similarity, as defined in RAGAS.
 
 Operational variables include input, output, and total token counts;
 retrieval, generation, and end-to-end latency; and output tokens per
@@ -531,9 +530,8 @@ hardware-independent throughput.
 \subsection{Analysis Plan}
 The primary analysis is descriptive and item-level. Means are computed from
 the 10 question-level scores for each applicable metric within each balanced
-scenario; context-dependent metrics are not applicable to No RAG. Given the
-limited number of evaluated questions per scenario, all comparisons are
-treated as exploratory rather than confirmatory. QLoRA is compared with
+scenario; context-dependent metrics are not applicable to No RAG.
+Comparisons are exploratory. QLoRA is compared with
 base within each retrieval strategy and family; retrieval strategies are
 contrasted within adaptation and family; and model families are compared
 under matched conditions.
@@ -717,22 +715,50 @@ but increased Answer Correctness over Hybrid only for Gemma~4 QLoRA. Higher
 Context Precision therefore did not guarantee better final answers.
 % =====================================================================
 \section{Conclusions}
-In this exploratory 20-question benchmark, the effect of grounded QLoRA under
-No RAG varied by model family and scenario. It increased Answer Relevancy in
-all four model-scenario comparisons, while effects on Answer Correctness and
-Semantic Similarity were mixed. Medical pretraining did not show a consistent
-performance advantage across the tested conditions after adaptation. Hybrid
-retrieval increased Answer Correctness in all four comparisons in each
-scenario but reduced Answer Relevancy in six of eight comparisons, indicating
-a trade-off between reference agreement and response directness.
+The results suggest distinct roles for the three inference strategies rather
+than a single best configuration. Retrieval with Hybrid is the strongest
+starting point for agreement with the reference responses in this benchmark:
+it increased Answer Correctness relative to No RAG in all eight
+model-state-scenario comparisons, and Gemma~4 Base with Hybrid achieved the
+highest mean Answer Correctness in each scenario. This gain should be weighed
+against the lower Answer Relevancy observed in six of eight comparisons, which
+may indicate that additional evidence makes answers less direct. These results
+apply to a setting in which the relevant source documents are present in the
+retrieval corpus.
 
-HyDE completed all planned conditions in both evaluated scenarios and
-generally produced high Context Precision, but it did not consistently improve
-Answer Correctness, Answer Relevancy, or Semantic Similarity over Hybrid. The
-evidence therefore supports a nuanced conclusion: observed benefits varied
-by model family, metric, and scenario. Because these are descriptive patterns
-from 10 questions per scenario, broader question coverage and clinician
-assessment remain necessary before drawing deployment-oriented conclusions.
+HyDE achieved higher Context Precision than Hybrid in seven of eight
+comparisons, but this advantage did not carry over to the final answers: it
+improved Answer Correctness over Hybrid only for Gemma~4 QLoRA, lowered
+Context Recall in the obstetric challenge set, and added a generation step
+(18.5~s on average per unique HyDE generation). In this benchmark, therefore,
+the results give no basis for preferring HyDE over Hybrid; it would warrant
+consideration only if evaluation on the target questions confirmed a gain in
+the final answers.
+
+No RAG, the control for parametric knowledge, obtained the lowest Answer
+Correctness in six of eight comparisons and the highest Answer Relevancy in six
+of eight, including the two highest values overall. It remains relevant when an
+external corpus is unavailable or when response directness is the priority, but
+Answer Relevancy alone is not a sufficient basis for preferring it, because
+retrieval generally improved agreement with the reference responses.
+
+The comparison also gives no basis for assuming that medical pretraining or
+QLoRA will lead across every objective. QLoRA increased No RAG Answer Relevancy
+in all four model-scenario comparisons, while its effects on Answer Correctness
+and Semantic Similarity varied. In practice, model adaptation and retrieval
+strategy should be selected according to the system's priority: reference
+alignment, response directness, or retrieval precision. These findings are
+descriptive results from 10 questions per scenario and automated metrics; they
+can guide configuration choices for further evaluation, but do not establish
+clinical reliability. A broader question set and clinician assessment are
+needed before considering clinical use.
+% =====================================================================
+\section{Limitations and Future Work}
+The evaluation covers 10 questions per scenario, so the results are
+descriptive patterns rather than statistical conclusions. Scoring relies on
+automatic RAGAS metrics; clinician assessment and broader question coverage
+are left for future work.
+
 % =====================================================================
 %  Bibliography -- IEEEtran.bst, numeric citation order
 % =====================================================================
