@@ -406,8 +406,7 @@ RAG is the second core method~\cite{lewis2020retrieval}. The protocol treats
 retrieval strategy as a reproducible experimental factor. No RAG, Hybrid
 retrieval, and independent HyDE differ in how evidence is
 prepared before the answer model receives the question and context.
-Hypothetical text is used only for query expansion. Fig.~\ref{fig:rag-types}
-summarizes the three variants.
+Hypothetical text is used only for query expansion.
 
 \subsubsection{Corpus Provenance and Chunk Construction}
 The separate retrieval corpus contains 2,268 chunks from curated
@@ -472,16 +471,6 @@ omits the retrieved-context block from the answer prompt. Context-dependent
 retrieval metrics are therefore not defined and are not assigned a value of
 zero.
 
-% --- Single-column RAG variants figure, caption below ----------------
-% Placed after the technique descriptions so it does not sit next to Fig. 1.
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{figures/rag-types.pdf}
-\caption{RAG variants used in the benchmark: No RAG, Hybrid retrieval
-with dense and sparse fusion, and independent HyDE retrieval.}
-\label{fig:rag-types}
-\end{figure}
-
 \subsection{Inference and Prompt Controls}
 All answer prompts are written in Spanish. RAG prompts contain a clearly
 delimited context block with positional labels and the question. Provenance
@@ -500,14 +489,6 @@ RAGAS 0.4.3~\cite{es2024ragas} is used as an external automatic evaluation
 layer.
 Response-quality, retrieval-quality, and operational measurement domains
 are kept separate before paired contrasts and interaction analysis.
-Fig.~\ref{fig:ragas-eval-workflow} shows the evaluation workflow.
-\begin{figure}[!t]
-\centering
-\includegraphics[width=\columnwidth]{figures/ragas-eval-workflow.pdf}
-\caption{RAGAS response-evaluation workflow from per-question inputs and
-evidence to per-condition results.}
-\label{fig:ragas-eval-workflow}
-\end{figure}
 
 \subsubsection{Retained Fine-Tuning-Output Evaluator}
 The retained evaluator uses RAGAS 0.4.3 with \code{gpt-5.4-mini} as
