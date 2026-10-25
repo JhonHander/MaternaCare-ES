@@ -57,8 +57,12 @@ project documentation that points at the real paths.
    accents, or duplicate-download suffixes.
 2. Manuscript source and its built PDF share one basename, so `latexmk` owns the
    `.pdf` next to the `.tex`.
-3. Authored slugs are lowercase kebab-case including project, venue and year:
-   `maternacare-es-iscmi2026.{tex,pdf}`.
+3. The manuscript slug derives from the paper title, not from the repository or
+   project name: lowercase kebab-case, abbreviated where the title is long, with
+   no venue and no year:
+   `benchmarking-slm-spanish-obstetric-qa.{tex,pdf}`.
+   Venue identity lives in `submission/`, so a resubmission does not force a
+   rename.
 4. Venue identifiers keep their official uppercase form and paper ID:
    `ISCMI2026-VA116-revised.pdf`.
 5. Figure assets are lowercase kebab-case descriptive nouns:
@@ -73,8 +77,8 @@ papers/
 ├── AGENTS.md
 ├── README.md                                   # new: artifact index + build
 └── oficial/
-    ├── maternacare-es-iscmi2026.tex            # manuscript source of truth
-    ├── maternacare-es-iscmi2026.pdf            # build output (committed)
+    ├── benchmarking-slm-spanish-obstetric-qa.tex            # manuscript source of truth
+    ├── benchmarking-slm-spanish-obstetric-qa.pdf            # build output (committed)
     ├── references.bib
     ├── figures/
     │   ├── ft-vs-lora.pdf                      # used: Fig. 1
@@ -97,7 +101,7 @@ papers/
 ## Tasks
 
 - [x] T1 Move and rename the manuscript source and PDF to
-      `maternacare-es-iscmi2026.{tex,pdf}` with `git mv`.
+      `benchmarking-slm-spanish-obstetric-qa.{tex,pdf}` with `git mv`.
 - [x] T2 Move venue material into `submission/` and `templates/` with `git mv`.
 - [x] T3 Archive the five unused figures under `figures/archive/`.
 - [x] T4 Delete orphan build artifacts: `Benchmarking ...*.{aux,bbl,blg,...}`,
@@ -111,6 +115,23 @@ papers/
 - [x] T8 Update root `README.md` so the repository tree and documentation table
       match the new layout; confirm root `AGENTS.md` needs no change.
 - [x] T9 Commit the work unit.
+- [x] T10 Rename the manuscript to a title-derived slug after review feedback:
+      `maternacare-es-iscmi2026.{tex,pdf}` ->
+      `benchmarking-slm-spanish-obstetric-qa.{tex,pdf}` with `git mv`, then
+      realign `papers/AGENTS.md`, `papers/README.md` and this document.
+
+## Superseded decision
+
+T1 named the manuscript after the repository (`maternacare-es`) plus venue and
+year. Review feedback rejected that: the project name does not appear in the
+paper title, so the basename described the repository rather than the paper, and
+encoding the venue made every resubmission a rename. T10 supersedes T1's
+basename; every other decision in this document still holds.
+
+The replacement derives from the title, "Benchmarking General and Medical Small
+Language Models for Spanish Obstetric Question Answering": `slm` is the
+manuscript's own abbreviation for small language models, and venue identity moved
+entirely to `submission/ISCMI2026-VA116-revised.pdf`.
 
 ## Verification evidence
 
@@ -121,8 +142,8 @@ papers/
   same delta that was already uncommitted before this work unit. Renaming
   authored nothing.
 - `latexmk -pdf -interaction=nonstopmode -halt-on-error
-  maternacare-es-iscmi2026.tex` from `papers/oficial/`: exit 0, output
-  `maternacare-es-iscmi2026.pdf (6 pages, 333842 bytes)`.
+  benchmarking-slm-spanish-obstetric-qa.tex` from `papers/oficial/`: exit 0, output
+  `benchmarking-slm-spanish-obstetric-qa.pdf (6 pages, 333842 bytes)`.
 - `pdfinfo`: 6 pages, 612 x 792 pts (US Letter), same size as the pre-move
   build.
 - `pdftotext -layout` diff between the pre-move build and the rebuilt PDF:
@@ -138,6 +159,12 @@ papers/
   as written.
 - `python -m unittest discover -s tests -v` is not applicable: no Python code,
   fixture or canonical snapshot changes in this work unit.
+- T10 rename verified in an isolated copy under `/tmp/opencode/rebuild-check` so
+  the committed PDF bytes were never rewritten: `latexmk` exit 0, 6 pages,
+  612 x 792 pts, 0 overfull hboxes, no undefined references or citations, and
+  `pdftotext -layout` identical to the committed PDF. `pdfinfo` shows no
+  `maternacare` string inside the PDF, so the rename is a pure `git mv` with no
+  byte change.
 
 ## Route and rationale
 
@@ -180,5 +207,6 @@ user-owned, and this run does not act on it.
   review, so `gentle-ai review mode disable --scope clone --cwd <repo>` is the
   documented way out if reviews should stop being queued here. It was not run.
 - Push and open the PR when ready; delivery is not authorized by this document.
-- `odd/tasks/*.md` still mention the retired manuscript basenames. They are
-  historical records and were intentionally not rewritten.
+- This document was realigned to the T10 basename. Other `odd/tasks/*.md`
+  records may still mention earlier manuscript basenames; those are historical
+  records and were intentionally not rewritten.

@@ -9,8 +9,8 @@ This directory holds the ISCMI 2026 IEEE conference manuscript for MaternaCare-E
 | `AGENTS.md` | Writing, naming, build, and bibliography rules for this directory. |
 | `README.md` | This file. |
 | `oficial/` | Manuscript directory: source, built PDF, bibliography, figures, and venue material. |
-| `oficial/maternacare-es-iscmi2026.tex` | Authoritative LaTeX source, `\documentclass[conference]{IEEEtran}`. |
-| `oficial/maternacare-es-iscmi2026.pdf` | Committed build output; 6 pages, US Letter (612 x 792 pt). |
+| `oficial/benchmarking-slm-spanish-obstetric-qa.tex` | Authoritative LaTeX source, `\documentclass[conference]{IEEEtran}`. |
+| `oficial/benchmarking-slm-spanish-obstetric-qa.pdf` | Committed build output; 6 pages, US Letter (612 x 792 pt). |
 | `oficial/references.bib` | BibTeX database resolved by `\bibliography{references}`. |
 | `oficial/figures/` | Figure assets referenced by the build. |
 | `oficial/figures/ft-vs-lora.pdf` | Figure 1: full fine-tuning versus LoRA. |
@@ -28,28 +28,28 @@ This directory holds the ISCMI 2026 IEEE conference manuscript for MaternaCare-E
 
 ## Source of truth
 
-`oficial/maternacare-es-iscmi2026.tex` is the maintained manuscript. `oficial/submission/ISCMI2026-VA116-revised.pdf` is the venue revision the source was synchronized with; it is a record of what was returned, not an editable artifact. Do not treat the PDFs as a source to edit back into LaTeX.
+`oficial/benchmarking-slm-spanish-obstetric-qa.tex` is the maintained manuscript. `oficial/submission/ISCMI2026-VA116-revised.pdf` is the venue revision the source was synchronized with; it is a record of what was returned, not an editable artifact. Do not treat the PDFs as a source to edit back into LaTeX.
 
 ## Build
 
 Run from `papers/oficial/`:
 
 ```bash
-latexmk -pdf -interaction=nonstopmode -halt-on-error maternacare-es-iscmi2026.tex
+latexmk -pdf -interaction=nonstopmode -halt-on-error benchmarking-slm-spanish-obstetric-qa.tex
 ```
 
 Without `latexmk`, run the manual sequence:
 
 ```bash
-pdflatex maternacare-es-iscmi2026.tex
-bibtex maternacare-es-iscmi2026
-pdflatex maternacare-es-iscmi2026.tex
-pdflatex maternacare-es-iscmi2026.tex
+pdflatex benchmarking-slm-spanish-obstetric-qa.tex
+bibtex benchmarking-slm-spanish-obstetric-qa
+pdflatex benchmarking-slm-spanish-obstetric-qa.tex
+pdflatex benchmarking-slm-spanish-obstetric-qa.tex
 ```
 
 The build requires a TeX Live installation that provides `IEEEtran.cls` and `IEEEtran.bst`. They are not vendored in this repository, and `.gitignore` excludes `papers/**/IEEEtran.cls` and `papers/**/IEEEtran.bst`.
 
-The committed PDF is the output of this command: 6 pages on US Letter, no undefined references or citations, and no overfull hboxes. Rebuild and replace `oficial/maternacare-es-iscmi2026.pdf` whenever the source changes.
+The committed PDF is the output of this command: 6 pages on US Letter, no undefined references or citations, and no overfull hboxes. Rebuild and replace `oficial/benchmarking-slm-spanish-obstetric-qa.pdf` whenever the source changes.
 
 ## Figures
 
@@ -66,7 +66,7 @@ This is a repository convention derived from IEEE submission-system constraints,
 
 1. ASCII only: `a-z`, `A-Z`, `0-9`, `-`, `_`. No spaces, colons, parentheses, accents, or duplicate-download suffixes.
 2. Manuscript source and built PDF share one basename, so `latexmk` writes the PDF next to the source.
-3. Authored slugs are lowercase kebab-case combining project, venue, and year: `maternacare-es-iscmi2026.{tex,pdf}`.
+3. The manuscript slug derives from the paper title, not from the repository or project name: lowercase kebab-case, abbreviated where the title is long, with no venue and no year. `benchmarking-slm-spanish-obstetric-qa.{tex,pdf}` stands for "Benchmarking General and Medical Small Language Models for Spanish Obstetric Question Answering". Venue identity belongs to `submission/`, so resubmitting elsewhere does not force a rename.
 4. Venue artifacts keep the official uppercase venue acronym and paper ID: `ISCMI2026-VA116-revised.pdf`.
 5. Figure assets use lowercase kebab-case descriptive names: `ft-vs-lora.pdf`, `rag-types-v2.pdf`.
 6. Build artifacts are never committed.
