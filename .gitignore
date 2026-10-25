@@ -77,7 +77,8 @@ smoke_*.jsonl
 # Canonical benchmark snapshots are intentionally versioned.
 !datasets/obstetrics/corpus/chunks.jsonl
 !datasets/sample10.jsonl
+# Dated RAG benchmark runs are kept as published result sets.
+!outputs/rag_benchmark_2026-07-20/*.jsonl
 
-# Rebuildable benchmark outputs and dense indexes.
-outputs/rag_benchmark/
+# Rebuildable dense indexes.
 artifacts/rag_benchmark/indexes/

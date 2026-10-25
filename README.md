@@ -95,19 +95,16 @@ MaternaCare-ES/
 │   ├── vram_smoke_test.py             # Smoke test directo en GPU
 │   └── vram_smoke_test_offload.py     # Smoke test con CPU offloading
 │   └── backfill_prediction_metadata.py
-├── outputs/                           # Pesos, checkpoints y evaluaciones
-│   ├── gemma4-grounded/               # Adapter Gemma 4 grounded
-│   ├── medgemma-grounded/             # Adapter MedGemma grounded
-│   ├── smoke-gemma4/                  # Smoke test Gemma 4
-│   ├── smoke-medgemma/                # Smoke test MedGemma
-│   ├── gemma4-base/                   # Baseline Gemma 4
-│   ├── medgemma-base/                 # Baseline MedGemma
-│   └──logs/                          # Logs de ejecución
-│   └──csv_outputs/                       # Resultados agregados en CSV
+├── outputs/                           # Resultados de evaluación (regenerables salvo excepciones)
+│   ├── paper_update_20_questions_2026-10-13/  # Tablas del experimento de 20 preguntas
+│   └── rag_benchmark_2026-07-20/      # Run del benchmark RAG versionado (predicciones + summaries)
 ├── datasets/                          # Mirror local opcional de MaternaQA-es
 │   └── obstetrics/qa/publication/     # Variantes SFT publicadas
 ├── docs/research_notes/               # Notas técnicas del proyecto
-├── papers/                            # Documentos del paper
+├── papers/                            # Manuscrito IEEE y materiales del envío
+│   ├── README.md                      # Índice, convención de nombres y compilación
+│   ├── AGENTS.md                      # Reglas de escritura, citas y compilación
+│   └── oficial/                       # .tex + PDF, figures/, submission/, templates/
 └── requirements.txt
 ```
 
@@ -337,7 +334,7 @@ dataset = load_dataset("iue-edu/MaternaQA-es")
 | Documento | Descripción |
 |-----------|-------------|
 | [Notas de investigación](./docs/research_notes/) | Decisiones técnicas, gotchas y seguimiento del proyecto. |
-| [Planeación del paper](./papers/README.md) | Posicionamiento, contribuciones y estrategia de escritura. |
+| [Paper y manuscrito](./papers/README.md) | Manuscrito IEEE (ISCMI 2026), figuras, materiales de envío y guía de compilación. |
 | [Dataset MaternaQA-es](https://github.com/NicolasHoyosDevss/MaternaQA-es) | Metodología de construcción del dataset de entrenamiento. |
 
 ## Consideraciones Éticas y de Uso

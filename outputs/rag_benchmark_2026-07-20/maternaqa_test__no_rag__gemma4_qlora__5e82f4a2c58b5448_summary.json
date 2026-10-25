@@ -1,0 +1,79 @@
+{
+  "dataset_mode": "maternaqa_test",
+  "strategy": "no_rag",
+  "model": "gemma4_qlora",
+  "model_id": "iue-edu/MaternaCare-ES-gemma4-qlora",
+  "configuration_fingerprint": "5e82f4a2c58b5448",
+  "rows": 10,
+  "rows_with_error": 0,
+  "metrics": {
+    "context_precision": null,
+    "context_recall": null,
+    "faithfulness": null,
+    "answer_relevancy": 0.7363518181791813,
+    "answer_correctness": 0.44934593362958325,
+    "semantic_similarity": 0.7373097779291606
+  },
+  "operations": {
+    "input_tokens": 75.1,
+    "output_tokens": 96.3,
+    "total_tokens": 171.4,
+    "retrieval_latency_seconds": 0.0,
+    "generation_latency_seconds": 14.187335470000653,
+    "end_to_end_latency_seconds": 14.187335470000653,
+    "output_tokens_per_second": 6.248158527431473
+  },
+  "configuration": {
+    "retrieval_k": 5,
+    "retrieval_embedding_model": "BAAI/bge-m3",
+    "hyde_generator_model": null,
+    "evaluator_model": "gpt-5.4-mini",
+    "embedding_model": "text-embedding-3-large",
+    "output_jsonl": "outputs\\rag_benchmark\\maternaqa_test__no_rag__gemma4_qlora__5e82f4a2c58b5448.jsonl",
+    "dataset": {
+      "mode": "maternaqa_test",
+      "path": "C:\\Users\\alche\\OneDrive\\Desktop\\Work\\repohander6\\MaternaCare-ES\\datasets\\obstetrics\\qa\\publication\\qa_flat_jsonl\\test.jsonl",
+      "sha256": "cf73ad73ad508a985f498cf495e75f43b534eb70defcfe43ded832bb1053fc62",
+      "limit": 10
+    },
+    "corpus": {
+      "path": "C:\\Users\\alche\\OneDrive\\Desktop\\Work\\repohander6\\MaternaCare-ES\\datasets\\obstetrics\\corpus\\chunks.jsonl",
+      "sha256": "6a83516468f353fdf27457149d73ab8f9ad19980932482cd6e571d51eba0bdd4"
+    },
+    "strategy": "no_rag",
+    "retrieval": {
+      "backend": "lancedb_exact",
+      "k": 5,
+      "model": "BAAI/bge-m3",
+      "revision": "0c6f0d0ea8f284b9070c3ffaa50677440943f984",
+      "device": "cuda",
+      "batch_size": 32
+    },
+    "hyde": null,
+    "answer": {
+      "key": "gemma4_qlora",
+      "model_id": "iue-edu/MaternaCare-ES-gemma4-qlora",
+      "base_model_id": "google/gemma-4-E2B-it",
+      "adapter_source": "iue-edu/MaternaCare-ES-gemma4-qlora",
+      "adapter_provenance": "registry_remote",
+      "prompt": "Responde la pregunta clínica en español de forma precisa y directa usando tus conocimientos generales. Si no puedes establecer la respuesta con seguridad, indícalo claramente.",
+      "generation": {
+        "max_new_tokens": 512,
+        "do_sample": false,
+        "temperature": 0.7,
+        "top_p": 0.9,
+        "repetition_penalty": null,
+        "no_repeat_ngram_size": 0
+      },
+      "load_in_4bit": true,
+      "trust_remote_code": false,
+      "attn_implementation": null
+    },
+    "evaluator": {
+      "model": "gpt-5.4-mini",
+      "embedding_model": "text-embedding-3-large",
+      "max_completion_tokens": 2048,
+      "timeout_seconds": 180
+    }
+  }
+}
