@@ -95,15 +95,9 @@ MaternaCare-ES/
 │   ├── vram_smoke_test.py             # Smoke test directo en GPU
 │   └── vram_smoke_test_offload.py     # Smoke test con CPU offloading
 │   └── backfill_prediction_metadata.py
-├── outputs/                           # Pesos, checkpoints y evaluaciones
-│   ├── gemma4-grounded/               # Adapter Gemma 4 grounded
-│   ├── medgemma-grounded/             # Adapter MedGemma grounded
-│   ├── smoke-gemma4/                  # Smoke test Gemma 4
-│   ├── smoke-medgemma/                # Smoke test MedGemma
-│   ├── gemma4-base/                   # Baseline Gemma 4
-│   ├── medgemma-base/                 # Baseline MedGemma
-│   └──logs/                          # Logs de ejecución
-│   └──csv_outputs/                       # Resultados agregados en CSV
+├── outputs/                           # Resultados de evaluación (regenerables salvo excepciones)
+│   ├── paper_update_20_questions_2026-10-13/  # Tablas del experimento de 20 preguntas
+│   └── rag_benchmark_2026-07-20/      # Run del benchmark RAG versionado (predicciones + summaries)
 ├── datasets/                          # Mirror local opcional de MaternaQA-es
 │   └── obstetrics/qa/publication/     # Variantes SFT publicadas
 ├── docs/research_notes/               # Notas técnicas del proyecto

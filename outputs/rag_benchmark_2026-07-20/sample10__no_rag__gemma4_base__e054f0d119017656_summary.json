@@ -1,0 +1,79 @@
+{
+  "dataset_mode": "sample10",
+  "strategy": "no_rag",
+  "model": "gemma4_base",
+  "model_id": "google/gemma-4-E2B-it",
+  "configuration_fingerprint": "e054f0d119017656",
+  "rows": 10,
+  "rows_with_error": 0,
+  "metrics": {
+    "context_precision": null,
+    "context_recall": null,
+    "faithfulness": null,
+    "answer_relevancy": 0.7075948247625007,
+    "answer_correctness": 0.2057940476391323,
+    "semantic_similarity": 0.6203923259498485
+  },
+  "operations": {
+    "input_tokens": 59.7,
+    "output_tokens": 451.5,
+    "total_tokens": 511.2,
+    "retrieval_latency_seconds": 0.0,
+    "generation_latency_seconds": 48.04888303999978,
+    "end_to_end_latency_seconds": 48.04888303999978,
+    "output_tokens_per_second": 9.638297762188051
+  },
+  "configuration": {
+    "retrieval_k": 5,
+    "retrieval_embedding_model": "BAAI/bge-m3",
+    "hyde_generator_model": null,
+    "evaluator_model": "gpt-5.4-mini",
+    "embedding_model": "text-embedding-3-large",
+    "output_jsonl": "outputs\\rag_benchmark\\sample10__no_rag__gemma4_base__e054f0d119017656.jsonl",
+    "dataset": {
+      "mode": "sample10",
+      "path": "C:\\Users\\alche\\OneDrive\\Desktop\\Work\\repohander6\\MaternaCare-ES\\datasets\\sample10.jsonl",
+      "sha256": "c54105d506f19e96c54e4c0c606022afb419050e4163923c274bb0b8294fb3bc",
+      "limit": null
+    },
+    "corpus": {
+      "path": "C:\\Users\\alche\\OneDrive\\Desktop\\Work\\repohander6\\MaternaCare-ES\\datasets\\obstetrics\\corpus\\chunks.jsonl",
+      "sha256": "6a83516468f353fdf27457149d73ab8f9ad19980932482cd6e571d51eba0bdd4"
+    },
+    "strategy": "no_rag",
+    "retrieval": {
+      "backend": "lancedb_exact",
+      "k": 5,
+      "model": "BAAI/bge-m3",
+      "revision": "0c6f0d0ea8f284b9070c3ffaa50677440943f984",
+      "device": "cuda",
+      "batch_size": 32
+    },
+    "hyde": null,
+    "answer": {
+      "key": "gemma4_base",
+      "model_id": "google/gemma-4-E2B-it",
+      "base_model_id": "google/gemma-4-E2B-it",
+      "adapter_source": null,
+      "adapter_provenance": "base_model",
+      "prompt": "Responde la pregunta clínica en español de forma precisa y directa usando tus conocimientos generales. Si no puedes establecer la respuesta con seguridad, indícalo claramente.",
+      "generation": {
+        "max_new_tokens": 512,
+        "do_sample": false,
+        "temperature": 0.7,
+        "top_p": 0.9,
+        "repetition_penalty": null,
+        "no_repeat_ngram_size": 0
+      },
+      "load_in_4bit": true,
+      "trust_remote_code": false,
+      "attn_implementation": null
+    },
+    "evaluator": {
+      "model": "gpt-5.4-mini",
+      "embedding_model": "text-embedding-3-large",
+      "max_completion_tokens": 2048,
+      "timeout_seconds": 180
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "dataset_mode": "maternaqa_test",
+  "strategy": "hybrid",
+  "model": "gemma4_base",
+  "model_id": "google/gemma-4-E2B-it",
+  "configuration_fingerprint": "63a9d5559eeef667",
+  "rows": 10,
+  "rows_with_error": 1,
+  "metrics": {
+    "context_precision": 0.94499999997875,
+    "context_recall": 0.9,
+    "faithfulness": 0.9166666666666666,
+    "answer_relevancy": 0.7859908847586469,
+    "answer_correctness": 0.6679461077313993,
+    "semantic_similarity": 0.813274838849255
+  },
+  "operations": {
+    "input_tokens": 5837.0,
+    "output_tokens": 206.6,
+    "total_tokens": 6043.6,
+    "retrieval_latency_seconds": 1.916466539999692,
+    "generation_latency_seconds": 33.06075512999978,
+    "end_to_end_latency_seconds": 34.97722166999947,
+    "output_tokens_per_second": 5.735212241548312
+  },
+  "configuration": {
+    "retrieval_k": 5,
+    "retrieval_embedding_model": "BAAI/bge-m3",
+    "hyde_generator_model": null,
+    "evaluator_model": "gpt-5.4-mini",
+    "embedding_model": "text-embedding-3-large",
+    "output_jsonl": "outputs\\rag_benchmark\\maternaqa_test__hybrid__gemma4_base__63a9d5559eeef667.jsonl",
+    "dataset": {
+      "mode": "maternaqa_test",
+      "path": "C:\\Users\\alche\\OneDrive\\Desktop\\Work\\repohander6\\MaternaCare-ES\\datasets\\obstetrics\\qa\\publication\\qa_flat_jsonl\\test.jsonl",
+      "sha256": "cf73ad73ad508a985f498cf495e75f43b534eb70defcfe43ded832bb1053fc62",
+      "limit": 10
+    },
+    "corpus": {
+      "path": "C:\\Users\\alche\\OneDrive\\Desktop\\Work\\repohander6\\MaternaCare-ES\\datasets\\obstetrics\\corpus\\chunks.jsonl",
+      "sha256": "6a83516468f353fdf27457149d73ab8f9ad19980932482cd6e571d51eba0bdd4"
+    },
+    "strategy": "hybrid",
+    "retrieval": {
+      "backend": "lancedb_exact",
+      "k": 5,
+      "model": "BAAI/bge-m3",
+      "revision": "0c6f0d0ea8f284b9070c3ffaa50677440943f984",
+      "device": "cuda",
+      "batch_size": 32
+    },
+    "hyde": null,
+    "answer": {
+      "key": "gemma4_base",
+      "model_id": "google/gemma-4-E2B-it",
+      "base_model_id": "google/gemma-4-E2B-it",
+      "adapter_source": null,
+      "adapter_provenance": "base_model",
+      "prompt": "Responde la pregunta clínica en español de forma precisa y directa. Usa exclusivamente la información respaldada por el contexto recuperado. Si el contexto no permite responder, indícalo claramente.",
+      "generation": {
+        "max_new_tokens": 512,
+        "do_sample": false,
+        "temperature": 0.7,
+        "top_p": 0.9,
+        "repetition_penalty": null,
+        "no_repeat_ngram_size": 0
+      },
+      "load_in_4bit": true,
+      "trust_remote_code": false,
+      "attn_implementation": null
+    },
+    "evaluator": {
+      "model": "gpt-5.4-mini",
+      "embedding_model": "text-embedding-3-large",
+      "max_completion_tokens": 2048,
+      "timeout_seconds": 180
+    }
+  }
+}
