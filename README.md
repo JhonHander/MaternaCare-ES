@@ -107,7 +107,10 @@ MaternaCare-ES/
 ├── datasets/                          # Mirror local opcional de MaternaQA-es
 │   └── obstetrics/qa/publication/     # Variantes SFT publicadas
 ├── docs/research_notes/               # Notas técnicas del proyecto
-├── papers/                            # Documentos del paper
+├── papers/                            # Manuscrito IEEE y materiales del envío
+│   ├── README.md                      # Índice, convención de nombres y compilación
+│   ├── AGENTS.md                      # Reglas de escritura, citas y compilación
+│   └── oficial/                       # .tex + PDF, figures/, submission/, templates/
 └── requirements.txt
 ```
 
@@ -337,7 +340,7 @@ dataset = load_dataset("iue-edu/MaternaQA-es")
 | Documento | Descripción |
 |-----------|-------------|
 | [Notas de investigación](./docs/research_notes/) | Decisiones técnicas, gotchas y seguimiento del proyecto. |
-| [Planeación del paper](./papers/README.md) | Posicionamiento, contribuciones y estrategia de escritura. |
+| [Paper y manuscrito](./papers/README.md) | Manuscrito IEEE (ISCMI 2026), figuras, materiales de envío y guía de compilación. |
 | [Dataset MaternaQA-es](https://github.com/NicolasHoyosDevss/MaternaQA-es) | Metodología de construcción del dataset de entrenamiento. |
 
 ## Consideraciones Éticas y de Uso

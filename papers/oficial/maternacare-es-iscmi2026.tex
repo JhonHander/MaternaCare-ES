@@ -199,84 +199,43 @@ retrieval-augmented inference and item-level evaluation.
 % =====================================================================
 \section{Methodology}
 % =====================================================================
-\subsection{Study Design and Research Questions}
-The study uses a controlled, offline factorial benchmark. Model family has
-two levels: Google Gemma~4 E2B instruction-tuned
-(\code{google/gemma-4-E2B-it}) and Google MedGemma~1.5 4B instruction-tuned
-(\code{google/medgemma-1.5-4b-it}). Parameter adaptation has two levels:
-base weights without an adapter and grounded QLoRA. Retrieval strategy has
-three planned levels: the No RAG control, canonical
-Hybrid retrieval, and canonical independent HyDE. Their Cartesian product
-defines 12 planned conditions. Throughout the paper, ``Base'' means no
-QLoRA adapter, and ``No RAG'' means no retrieved context (the model answers
-from the question alone); the two are independent and can be combined.
+\subsection{Study Design}
+The controlled, offline factorial benchmark crosses model family (Google
+Gemma~4 E2B instruction-tuned or MedGemma~1.5 4B instruction-tuned),
+adaptation (Base or grounded QLoRA), and retrieval (No RAG, canonical Hybrid,
+or canonical independent HyDE), yielding 12 conditions (Table~\ref{tab:factorial}).
+``Base'' means published weights without an adapter; ``No RAG'' means
+answering the question without retrieved context. These factors are independent.
+Retrieval comparisons hold the answer model, adaptation state, and items fixed.
+Retained artifacts cover all 24 scenario-condition runs across two scenarios.
 
-The unit of analysis is an item-level paired \code{qa_id}. The primary
-QLoRA estimand is the paired difference between QLoRA and base outputs
-within a fixed model family and retrieval strategy. Retrieval contrasts
-compare strategies within a fixed family and adaptation state. The
-interaction is the QLoRA-minus-base difference under Hybrid minus that
-under No RAG, within a model family; analogous contrasts compare HyDE
-with No RAG and the two model families.
+\subsection{Data, Scenarios, and Split Integrity}
+MaternaQA-es, publicly available on Hugging Face~\cite{maternaqa2026}, contains
+5,727 Spanish obstetric QA pairs from 63 clinical documents. Document-level
+partitions comprise 52 training PDFs (5,093 items), 2 validation PDFs
+(306 items), and 3 held-out test PDFs (328 items), with no test-source overlap
+with training or validation. Evaluation uses the first 10 held-out test records,
+a nonrandom subset rather than the complete partition.
 
-\subsection{Dataset, Provenance, and Split Integrity}
-MaternaQA-es contains 5,727 Spanish obstetric question-answer pairs derived
-from 63 clinical documents. Its document-level partitions contain 52
-training PDFs (5,093 items), 2 validation PDFs (306 items), and 3 held-out
-test PDFs (328 items). The exploratory evaluation subset comprised the
-first 10 records of the held-out test file used in the experiment, rather
-than the complete test partition. Test sources do not overlap training or
-validation sources, and \code{qa_id} is retained as the pairing
-key~\cite{maternaqa2026}.
+The second scenario uses 10 obstetric challenge questions
+(\code{datasets/sample10.jsonl}). Each scenario shares the same 10
+\code{qa_id} values across all conditions. Both support reference-answer
+metrics. MaternaQA-es retains QA metadata and source-reference information. The
+challenge items record only QA-level provenance (workbook, sheet, and row);
+no corpus chunk identifier is stored, although their reference answers match
+corpus chunks by text.
 
-The primary grounded adaptation uses the \code{sft_grounded}
-representation, in which the source context associated with an item is
-concatenated with the question.
-
-The same 10 held-out test questions were processed across all model and
-retrieval conditions. The 2,268-chunk retrieval corpus includes the source
-material associated with these questions. Therefore, the RAG evaluation
-measures the system's ability to retrieve and use relevant evidence when
-that evidence is available in the corpus, rather than strict generalization
-to completely unseen source documents. This inference-time access is
-distinct from leakage into model parameters, because the corresponding test
-documents were not used during fine-tuning.
-
-\subsection{Protocol Evaluation Scenarios}
-Two scenarios each comprise 10 questions evaluated across all 12 conditions:
-the obstetric challenge set (\code{datasets/sample10.jsonl}) and the
-processed held-out MaternaQA-es test subset. The latter retains QA metadata
-and source-reference information; the challenge set provides no gold
-reference-chunk identifiers. MaternaQA-es is publicly available on
-Hugging Face~\cite{maternaqa2026}.
-
-In both scenarios, the answer prompt contains only the question before
-retrieval. Hybrid and HyDE add retrieved corpus contexts, whereas No RAG
-receives none. Both scenarios support reference-answer metrics; only
-MaternaQA-es supports reference-chunk identity checks.
-
-Therefore, the two scenarios are treated as complementary evaluation
-settings rather than directly comparable samples from the same input
-distribution. Absolute metric differences between MaternaQA-es and the
-obstetric challenge set are not interpreted as effects of fine-tuning or
-retrieval, because scenario membership is confounded with differences in
-input construction and source-context availability. Model and retrieval
-comparisons are consequently emphasized within each scenario.
-
-\subsection{Model Families and Experimental Conditions}
-The benchmark compares Google Gemma~4 E2B instruction-tuned with Google
-MedGemma~1.5 4B instruction-tuned. Base conditions load the published
-model without an adapter. QLoRA conditions load
-\code{iue-edu/MaternaCare-ES-gemma4-qlora} or
-\code{iue-edu/MaternaCare-ES-medgemma-qlora} on the corresponding base
-model. The answer model, adaptation state, and test items are held fixed across
-retrieval-strategy comparisons within each model family; the retrieval
-strategy determines whether retrieved evidence is supplied.
-
-Table~\ref{tab:factorial} lists the complete prespecified design. The final
-result artifacts covered No RAG, Hybrid, and HyDE for all four
-model/adaptation combinations in both scenarios; therefore, all 24
-scenario-condition runs were represented in the analysis.
+The 2,268-chunk retrieval corpus includes source material associated with
+the held-out questions. Thus, RAG tests evidence use when relevant sources
+are available, not strict generalization to unseen documents. Inference-time
+corpus access is distinct from parameter leakage: test documents were not
+used in fine-tuning. Scenarios are complementary, not directly comparable
+samples: input construction and source-context availability confound absolute
+between-scenario differences. All principal comparisons are within scenario.
+In particular, absolute metric differences between MaternaQA-es and the
+challenge set are not interpreted as effects of fine-tuning or retrieval.
+The benchmark instead compares model and retrieval configurations on the
+same questions within each evaluation setting.
 
 % --- Table I: single column. The three factor columns already encode the
 % condition, so the old fifth column restated each row in prose and forced a
@@ -314,12 +273,48 @@ no retrieved context.
 \end{threeparttable}
 \end{table}
 
-\subsection{Grounded QLoRA Fine-Tuning}
+\subsection{Models and Grounded QLoRA}
 \label{sec:qlora}
-Both model families used grounded QLoRA~\cite{dettmers2023qlora} with
-4-bit base weights and the shared settings in
-Table~\ref{tab:qlora-config}. Training and validation partitions, grounded
-inputs, and optimization settings were matched across model families.
+QLoRA conditions load \code{iue-edu/MaternaCare-ES-gemma4-qlora} or
+\code{iue-edu/MaternaCare-ES-medgemma-qlora} on the corresponding base model.
+Base identifiers and shared 4-bit QLoRA settings~\cite{dettmers2023qlora}
+appear in Table~\ref{tab:qlora-config}. Both families use identical training
+and validation partitions, optimization settings, and \code{sft_grounded}
+inputs. This conversational \code{Contextofuente} representation concatenates
+pre-associated source context with each training question, unlike
+inference-time retrieval. Training context is supplied with each example,
+whereas RAG selects evidence from the separate corpus for each question.
+This distinction separates grounded parameter adaptation from the
+retrieval factor evaluated at inference.
+Fine-tuning and local neural-model computations
+used an NVIDIA GeForce RTX 5070 Ti Laptop GPU with 12~GB dedicated VRAM.
+
+Fig.~\ref{fig:qlora} contrasts full fine-tuning with LoRA's frozen-base,
+trainable low-rank branch. The benchmark uses QLoRA with a frozen quantized
+base; full fine-tuning is not an experimental arm.
+\begin{figure}[!b]
+\centering
+\includegraphics[width=\columnwidth]{figures/ft-vs-lora.pdf}
+\caption{Conceptual full fine-tuning versus LoRA. QLoRA uses the frozen-base
+approach with quantized base weights; full fine-tuning was not evaluated
+in this benchmark.}
+\label{fig:qlora}
+\end{figure}
+
+\subsection{Retrieval}
+\label{sec:rag-protocol}
+RAG~\cite{lewis2020retrieval} uses curated obstetric documents.
+Fig.~\ref{fig:rag-types-v2} summarizes the retrieval alternatives, not the
+complete prompt or runtime graph. The corpus-filtering \code{clinical_score}
+adds one point per clinical term (two for multiword terms) and one per
+action term, testing substring presence in normalized text rather than
+occurrence frequency. Cumulative bonuses add two points at each Unicode
+word-count threshold of 120 and 350. A reference-line ratio of at least
+0.35 subtracts three points; the final score is floored at zero. The ratio
+counts reference-matching nonempty lines over all nonempty lines.
+Normalization applies Unicode normalization, removes combining marks,
+lowercases text, replaces non-ASCII letters and punctuation with spaces,
+and collapses whitespace.
 
 % --- Table II: single column; only the base model differs -----------------
 \begin{table}[t]
@@ -357,29 +352,13 @@ Random seed & 3407 \\
 \end{threeparttable}
 \end{table}
 
-The \code{sft_grounded} examples use the conversational
-\code{Contextofuente} representation: source context is pre-associated
-with each training question, unlike inference-time RAG selection from the
-2,268-chunk corpus. Only QLoRA conditions load an adapter.
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/rag-types-v2.pdf}
+\caption{Retrieval alternatives: No RAG, Hybrid, and independent HyDE.}
+\label{fig:rag-types-v2}
+\end{figure}
 
-\subsection{Retrieval-Augmented Generation Protocol}
-\label{sec:rag-protocol}
-Retrieval strategy~\cite{lewis2020retrieval} controls evidence preparation:
-No RAG supplies none, Hybrid fuses dense and sparse retrieval, and
-independent HyDE uses hypothetical text only for query expansion.
-
-\subsubsection{Corpus Provenance and Chunk Construction}
-The retrieval corpus contains 2,268 chunks from curated obstetric documents.
-Its corpus-filtering \code{clinical_score} adds one point per clinical term
-found as a substring of normalized text (two for multiword terms) and one
-per action term. Cumulative bonuses add two points at each Unicode word-count
-threshold of 120 and 350; a reference-line ratio of at least 0.35 subtracts
-three points, with the final score floored at zero. The ratio counts
-reference-matching nonempty lines over all nonempty lines. Normalization
-applies Unicode normalization, removes combining marks, lowercases text,
-replaces non-ASCII letters and punctuation with spaces, and collapses whitespace.
-
-\subsubsection{Dense and Sparse Retrieval}
 Dense retrieval uses \code{BAAI/bge-m3}~\cite{chen2024bge} with
 SentenceTransformer-normalized vectors on CPU (\code{batch_size=32}) in a
 persistent local LanceDB table~\cite{lancedb2026vector}. Search is exhaustive
@@ -388,14 +367,12 @@ Sparse retrieval uses Okapi BM25 (\code{rank_bm25/BM25Okapi}) over Unicode
 lowercase word tokens. Outputs are recorded before answer generation for
 separate retrieval-quality and latency analysis.
 
-\subsubsection{Canonical Hybrid Retrieval}
 Hybrid retrieval fuses dense and BM25 rankings by reciprocal rank fusion
 with \code{rank_constant=60}~\cite{cormack2009reciprocal}. Candidate depth
 is the greater of four times the requested final depth and 50, capped by
 corpus size. Stable chunk IDs break ties; the final five chunks are supplied
 to the answer model.
 
-\subsubsection{Canonical Independent HyDE Retrieval}
 HyDE~\cite{gao2023precise} independently generates a Spanish clinical passage
 from each question using OpenAI \code{gpt-5-mini-2025-08-07}, separate from
 the answer model. Each passage is generated once, cached across answer-model
@@ -404,83 +381,58 @@ corpus chunks, never hypothetical text, provide answer
 evidence~\cite{ji2023survey}. Cache namespaces separate dataset mode,
 provider, and generator model; reuse checks \code{qa_id} and a question hash.
 
-\subsubsection{No RAG Control}
-The No RAG control returns no retrieved contexts and
-omits the retrieved-context block from the answer prompt. Context-dependent
-retrieval metrics are therefore not defined and are not assigned a value of
-zero.
+\subsection{Inference and Reproducibility}
+Spanish answer prompts use the question alone before retrieval. RAG adds
+a delimited context block with positional labels; No RAG retains the same
+question formatting and chat template without that block. Provenance stays
+in benchmark records, not prompt content. Retrieval and answer generation
+remain separate. Inference uses the model's chat template, greedy decoding,
+and at most 2,048 new tokens; sampling is disabled unless a run records otherwise.
+The same question formatting is retained across retrieval conditions, so
+No RAG differs by omission of the retrieved-context block rather than by
+receiving additional source information in the question.
 
-\subsection{Inference and Prompt Controls}
-All answer prompts are written in Spanish. RAG prompts contain a clearly
-delimited context block with positional labels and the question. Provenance
-is retained in benchmark records rather than asserted as content in the
-answer prompt. The No RAG condition receives the same question
-formatting and chat template but omits the context block.
+Reproducibility requires dataset revision, corpus hash, complete configuration,
+prompts, model/adapter identifiers, HyDE provider settings and cache identity,
+evaluator version, decoding settings, pinned BGE-M3 revision, and deterministic
+RRF ties.
 
-Inference uses the model's chat template and greedy decoding by default,
-with a maximum of 2,048 newly generated tokens. Sampling is disabled unless a
-run explicitly records a different configuration. QLoRA conditions load the
-declared adapter on the corresponding base model; base conditions do not.
-Retrieval generation and answer generation remain separate stages.
-
-\subsection{Evaluation Framework and Metrics}
-Automatic evaluation uses RAGAS~\cite{es2024ragas}.
-Response-quality, retrieval-quality, and operational measurement domains
-are kept separate before paired contrasts and interaction analysis.
-
-Table~\ref{tab:results} reports six RAGAS metrics: Context Precision,
+\subsection{Metrics and Statistical Analysis}
+RAGAS~\cite{es2024ragas} provides six metrics (Table~\ref{tab:results}): Context Precision,
 Context Recall, Faithfulness, Answer Relevancy, Answer Correctness, and
 Semantic Similarity. Context Recall assesses coverage of the reference
 answer by retrieved contexts; it does not require gold chunk identifiers.
-Reference-chunk identity checks are separate and unavailable for the
-challenge set.
+Reference-chunk identity checks are separate. Context-dependent metrics are
+undefined for No RAG, not assigned zero. Response quality, retrieval quality,
+and operational measurements are analyzed separately.
 
-The final aggregate exports do not retain the run-level evaluator
-configuration, so the evaluator model, embedding model, completion limit,
-and RAGAS version cannot be verified from these files.
+Evaluator settings are fixed in the evaluation code: RAGAS~0.4.3, with
+\code{gpt-5.4-mini} as the LLM judge, \code{text-embedding-3-small} for
+embedding-based metrics, and a 2048-token completion limit per evaluator call.
 
-Operational variables include input, output, and total token counts;
-retrieval, generation, and end-to-end latency; and output tokens per
-second. Wall-clock output rate is descriptive and not treated as
-hardware-independent throughput; it divides output-token count by
-generation time in seconds.
+Operational variables include input, output, and total tokens; retrieval,
+generation, and end-to-end latency; and output tokens per generation second.
+This wall-clock rate is descriptive, not hardware-independent throughput.
 
-\subsection{Analysis Plan}
-The primary analysis is descriptive and item-level. Means are computed from
-the 10 question-level scores for each applicable metric within each balanced
-scenario; context-dependent metrics are not applicable to No RAG.
-Comparisons are exploratory. QLoRA is compared with
-base within each retrieval strategy and family; retrieval strategies are
-contrasted within adaptation and family; and model families are compared
-under matched conditions.
+Analysis is exploratory and descriptive, averaging the 10 question-level
+scores per applicable metric and scenario. Paired contrasts use \code{qa_id}:
+QLoRA minus Base within family and retrieval strategy, retrieval contrasts
+within family and adaptation, and model-family contrasts under matched conditions.
+For a fixed question, scenario, model family, and metric, the interaction
+is the QLoRA-minus-Base difference under Hybrid minus that under No RAG.
+Analogous contrasts compare HyDE with No RAG and the two model families.
+These are exploratory contrasts, not significance tests.
 
-The summary used the same 10 \code{qa_id} values shared by all 12
-conditions in each scenario.
-
-Approximate marginal 95\% Student-$t$ confidence intervals use exported
-means, sample standard deviations, and counts (10 questions): the mean plus
-or minus the two-sided critical value with nine degrees of freedom times
-the standard error. This independent-question approximation is limited by
+Approximate marginal 95\% Student-$t$ confidence intervals use the exported
+mean plus or minus the two-sided critical value with nine degrees of
+freedom times the standard error. For 10 questions, that error is the
+exported sample standard deviation divided by the square root of 10.
+This independent-question approximation is limited by
 nonrandom selection and shared source documents.
-Intervals for all metrics and unstandardized mean differences accompany the
+Confidence intervals for all metrics are derivable from the accompanying
+sample standard deviations, and unstandardized mean differences accompany the
 reproducibility files. Paired tests, bootstrap intervals, and standardized
-paired effects require current question-level scores, unavailable in the
-aggregate exports, and are not reported.
-
-\subsection{Reproducibility and Experimental Scope}
-Reproducibility requires recording the MaternaQA-es revision,
-retrieval-corpus hash, complete configuration, prompts, model and adapter
-identifiers, HyDE provider settings, cache identity, evaluator version, and
-decoding settings. The pinned BGE-M3 revision and deterministic RRF
-tie-breaking are part of this record. Reporting follows the transparency
-goals of TRIPOD-LLM and Data Statements for
-NLP~\cite{gallifant2025tripod,bender2018data}.
-
-QLoRA fine-tuning and local neural-model computations were performed on an
-NVIDIA GeForce RTX 5070 Ti Laptop GPU with 12~GB of dedicated VRAM.
-The comparison comprised 20 questions---10 from MaternaQA-es and 10 from
-\code{sample10}---evaluated across all 12 conditions, and all principal
-comparisons are made within each scenario.
+paired effects were not performed and are not reported.
 
 % =====================================================================
 \section{Results}
@@ -708,9 +660,33 @@ reliability. Broader paired evaluation and clinician assessment are needed to
 determine whether these findings generalize.
 % =====================================================================
 \section{Limitations and Future Work}
+MaternaQA-es derives from Spanish-language obstetric documents and may not
+represent the full range of clinical questions or practice settings. With
+only 10 evaluated questions per scenario, the benchmark provides limited
+coverage of obstetric topics and source diversity. No clinician assessment
+has yet been conducted; automated metrics alone cannot establish clinical
+safety or usefulness. Future work should broaden question and source
+coverage and incorporate obstetric specialist assessment of answer
+correctness, safety, and clinical relevance before drawing conclusions
+about suitability for clinical use.
+
 The approximate marginal intervals do not establish paired statistical
 significance and do not account for document clustering, subset-selection
 bias, or evaluator variability.
+
+Future work will align reporting with TRIPOD-LLM~\cite{gallifant2025tripod}
+and Data Statements for NLP~\cite{bender2018data}.
+
+% =====================================================================
+%  Acknowledgment -- unnumbered (IEEE Editorial Style Manual). Discloses
+%  AI-assisted code development and manuscript drafting/editing, as
+%  required by the IEEE policy on AI-generated content.
+% =====================================================================
+\section*{Acknowledgment}
+The authors used OpenAI Codex (GPT-6 models) to assist with code development
+(Section~II) and with drafting and editing the manuscript text. All
+AI-assisted content was reviewed and verified by the authors, who take full
+responsibility for the work.
 
 % =====================================================================
 %  Bibliography -- IEEEtran.bst, numeric citation order
