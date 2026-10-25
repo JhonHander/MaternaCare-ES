@@ -96,40 +96,89 @@ papers/
 
 ## Tasks
 
-- [ ] T1 Move and rename the manuscript source and PDF to
+- [x] T1 Move and rename the manuscript source and PDF to
       `maternacare-es-iscmi2026.{tex,pdf}` with `git mv`.
-- [ ] T2 Move venue material into `submission/` and `templates/` with `git mv`.
-- [ ] T3 Archive the five unused figures under `figures/archive/`.
-- [ ] T4 Delete orphan build artifacts: `Benchmarking ...*.{aux,bbl,blg,...}`,
+- [x] T2 Move venue material into `submission/` and `templates/` with `git mv`.
+- [x] T3 Archive the five unused figures under `figures/archive/`.
+- [x] T4 Delete orphan build artifacts: `Benchmarking ...*.{aux,bbl,blg,...}`,
       `MaternaCare_ES_with_QLoRA_table.*`, `figures/rag-types.{aux,log}`, and the
       stray root-level `texput.log`.
-- [ ] T5 Stage `figures/rag-types-v2.pdf` so a fresh clone compiles.
-- [ ] T6 Rebuild the PDF from the renamed source; verify exit 0, 6 pages, no
+- [x] T5 Stage `figures/rag-types-v2.pdf` so a fresh clone compiles.
+- [x] T6 Rebuild the PDF from the renamed source; verify exit 0, 6 pages, no
       undefined references, and text identical to the pre-move build.
-- [ ] T7 Write `papers/README.md` and rewrite `papers/AGENTS.md` around the real
+- [x] T7 Write `papers/README.md` and rewrite `papers/AGENTS.md` around the real
       paths, the build command and the naming convention.
-- [ ] T8 Update root `README.md` so the repository tree and documentation table
+- [x] T8 Update root `README.md` so the repository tree and documentation table
       match the new layout; confirm root `AGENTS.md` needs no change.
-- [ ] T9 Commit the work unit.
+- [x] T9 Commit the work unit.
 
-## Verification plan
+## Verification evidence
 
-- `latexmk -pdf -interaction=nonstopmode -halt-on-error` from `papers/oficial/`,
-  expecting exit 0 and exactly 6 pages (`pdfinfo`).
-- `pdftotext` diff between the pre-move build and the rebuilt PDF: must be
+- `git mv` used for all nine moves; `git status` reported them as renames, so
+  history follows each file.
+- The `.tex` content is byte-identical to the pre-move working tree: the diff
+  against the pre-move `HEAD` blob is still 155 insertions / 179 deletions, the
+  same delta that was already uncommitted before this work unit. Renaming
+  authored nothing.
+- `latexmk -pdf -interaction=nonstopmode -halt-on-error
+  maternacare-es-iscmi2026.tex` from `papers/oficial/`: exit 0, output
+  `maternacare-es-iscmi2026.pdf (6 pages, 333842 bytes)`.
+- `pdfinfo`: 6 pages, 612 x 792 pts (US Letter), same size as the pre-move
+  build.
+- `pdftotext -layout` diff between the pre-move build and the rebuilt PDF:
   empty.
-- `git status` clean of untracked paper assets; `grep -rn` for the old basenames
-  must only hit `odd/tasks/` historical records.
-- `python -m unittest discover -s tests -v` is not applicable: no Python code
-  or fixture in this work unit changes.
-
-## Delivery forecast
-
-Renames plus three documentation files; well under the ~400 authored-line
-planning heuristic. Single work unit, no chained PR.
+- Build log: 0 overfull hboxes, no undefined control sequences, no undefined
+  references, no citation warnings.
+- `git status` after the commit: no untracked or modified file under `papers/`.
+  The two remaining working-tree entries (`odd/tasks/concise-methodology.md`
+  modified, `odd/tasks/stix-two-uniform-fonts.md` untracked) belong to separate
+  in-flight work and were deliberately left untouched and uncommitted.
+- `grep -rn` for the retired basenames outside `odd/` and `.git`: no matches.
+  The surviving references are inside `odd/tasks/*.md` historical records, left
+  as written.
+- `python -m unittest discover -s tests -v` is not applicable: no Python code,
+  fixture or canonical snapshot changes in this work unit.
 
 ## Route and rationale
 
-File moves and the PDF rebuild are mechanical and already-understood, so they
-run inline. Documentation is delegated to one writer with the fact package above
-and verified by the parent against the actual tree.
+- Moves, artifact cleanup and the PDF rebuild ran inline: mechanical,
+  already-understood, and verifiable by a single build.
+- The two documentation files were delegated to one writer with a closed fact
+  sheet, then read back and checked by the parent: every stated path exists, the
+  eight original rules and four bibliography steps survived, and the writer
+  marked the naming convention as a repository convention rather than an IEEE
+  standard. The writer's only correction was dropping an unsupported
+  "superseded by" claim about `figures/archive/rag-types.pdf`.
+- Root `README.md` was edited inline: one tree block and one table cell, no
+  research needed. Root `AGENTS.md` already deferred to `papers/AGENTS.md` and
+  named no stale path, so it was left unchanged rather than churned.
+
+## Review status
+
+Receipt-driven development is enabled for the clone (`status` reports
+`on`, decided by `default`). The work-unit commit `ee57ee7` was assessed with
+`gentle-ai review assess --base-ref c2eadae --committed-only`: `risk: high`,
+`review_due: true`, reason `unassessable` because the worktree holds untracked
+files that require an explicit declaration.
+
+The mandated preflight then returned a typed unavailable result, not a review:
+
+```
+code: immutable_review_transport_unsupported
+message: The active runtime cannot provide immutable receipt-review transport.
+phase: preflight
+next_action: stop
+```
+
+No START was issued, no transaction exists for this candidate, and nothing was
+started. `gentle-ai review mode disable` was not run: the review switch is
+user-owned, and this run does not act on it.
+
+## Next steps
+
+- Decide the review switch: the current runtime cannot carry immutable receipt
+  review, so `gentle-ai review mode disable --scope clone --cwd <repo>` is the
+  documented way out if reviews should stop being queued here. It was not run.
+- Push and open the PR when ready; delivery is not authorized by this document.
+- `odd/tasks/*.md` still mention the retired manuscript basenames. They are
+  historical records and were intentionally not rewritten.
